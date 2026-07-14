@@ -1,0 +1,321 @@
+// Tarabut People Hub — database schema
+// Stage 1. PostgreSQL via Prisma.
+//
+// Design notes:
+// - Employee master data is a COPY imported from Zoho (Zoho remains system of record).
+// - Rating-guide category is SEPARATE from department (HR-configurable), per PRD v0.3.
+// - Attachment and Notification tables exist now so Phase 2+ can use them with NO
+//   migration to existing tables (future-proofing, per Stage 1 requirements).
+// - Review/rating tables are defined but NOT surfaced in Stage 1 UI (that is Stage 3+).
+//   They are here so the schema is stable and the module pattern is visible.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// CORE: identity & people
+// ---------------------------------------------------------------------------
+
+enum Role {
+  EMPLOYEE
+  MANAGER
+  HR
+  HR_ADMIN
+}
+
+enum EmploymentStatus {
+  ACTIVE
+  INACTIVE
+}
+
+// The five performance rating-guide categories + VALUES for the values guide.
+enum RatingGuideCategory {
+  ENGINEERING
+  SALES_COMMERCIAL
+  PRODUCT
+  OPERATIONS
+  SUPPORT_FUNCTIONS
+}
+
+model Employee {
+  id                String              @id @default(cuid())
+  // Identity — used to match the Microsoft 365 / Entra sign-in.
+  workEmail         String              @unique
+  displayName       String
+  // Reference / reporting
+  role              String? // job title, free text (e.g. "Senior PM")
+  department        String?
+  location          String?
+  employmentStatus  EmploymentStatus    @default(ACTIVE)
+
+  // Rating-guide category is configurable and NOT assumed equal to department.
+  // Null means "not yet assigned" — HR must assign before reviews use a guide.
+  ratingGuideCategory RatingGuideCategory?
+
+  // Reporting line (self-referential). A manager is another Employee.
+  managerId         String?
+  manager           Employee?           @relation("Reports", fields: [managerId], references: [id])
+  reports           Employee[]          @relation("Reports")
+
+  // Application roles this person holds (an employee can be a manager AND hold HR, etc.)
+  roleAssignments   RoleAssignment[]
+
+  // Reviews about this employee, and reviews where this person is the manager.
+  reviewsAsEmployee Review[]            @relation("ReviewEmployee")
+  reviewsAsManager  Review[]            @relation("ReviewManager")
+
+  notifications     Notification[]
+
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@index([managerId])
+  @@index([department])
+  @@index([employmentStatus])
+}
+
+// Application-role grants, separate from job title. Audited via AuditLog.
+model RoleAssignment {
+  id          String   @id @default(cuid())
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  role        Role
+  grantedAt   DateTime @default(now())
+  grantedBy   String? // employee id of the granter (null for seed)
+
+  @@unique([employeeId, role])
+  @@index([role])
+}
+
+// ---------------------------------------------------------------------------
+// CORE: audit (append-only)
+// ---------------------------------------------------------------------------
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  at         DateTime @default(now())
+  actorEmail String // who did it
+  action     String // e.g. "import.run", "role.grant", "review.reopen"
+  entityType String // e.g. "Employee", "Review", "RatingGuide"
+  entityId   String?
+  // Human-readable detail and/or structured reason (e.g. reopen reason).
+  detail     String?
+
+  @@index([at])
+  @@index([actorEmail])
+  @@index([entityType])
+}
+
+// ---------------------------------------------------------------------------
+// CORE: notifications (service seam — placeholder in Stage 1)
+// ---------------------------------------------------------------------------
+// The table and model exist now so in-app notifications and, later, email
+// reminders can be added WITHOUT schema change. Stage 1 only displays seeded
+// placeholder notifications; no reminder logic is built.
+
+enum NotificationChannel {
+  IN_APP
+  EMAIL
+}
+
+model Notification {
+  id          String              @id @default(cuid())
+  recipientId String
+  recipient   Employee            @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+  channel     NotificationChannel @default(IN_APP)
+  title       String
+  body        String?
+  // Optional deep link into the app (e.g. "/reviews/123").
+  linkPath    String?
+  readAt      DateTime?
+  createdAt   DateTime            @default(now())
+
+  @@index([recipientId, readAt])
+}
+
+// ---------------------------------------------------------------------------
+// MODULE 1: performance — rating guides
+// ---------------------------------------------------------------------------
+// Versioned guides. A published version is immutable so historical reviews keep
+// the guidance that applied when written. Stage 1 seeds these; editing UI is later.
+
+enum GuideKind {
+  PERFORMANCE // one per RatingGuideCategory
+  VALUES // the single values guide
+}
+
+model RatingGuide {
+  id        String                @id @default(cuid())
+  kind      GuideKind
+  // For PERFORMANCE guides, which category. Null for the VALUES guide.
+  category  RatingGuideCategory?
+  versions  RatingGuideVersion[]
+  createdAt DateTime              @default(now())
+
+  @@unique([kind, category])
+}
+
+model RatingGuideVersion {
+  id          String      @id @default(cuid())
+  guideId     String
+  guide       RatingGuide @relation(fields: [guideId], references: [id], onDelete: Cascade)
+  version     Int
+  isCurrent   Boolean     @default(false)
+  publishedAt DateTime    @default(now())
+  // Anchors: for each item (criterion or value) x each score 1..5, the text.
+  anchors     RatingGuideAnchor[]
+
+  @@unique([guideId, version])
+}
+
+model RatingGuideAnchor {
+  id        String             @id @default(cuid())
+  versionId String
+  version   RatingGuideVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  item      String // e.g. "IMPACT", "QUALITY", "DELIVERY", or a value name
+  score     Int // 1..5
+  text      String
+
+  @@unique([versionId, item, score])
+}
+
+// ---------------------------------------------------------------------------
+// MODULE 1: performance — reviews (schema only in Stage 1)
+// ---------------------------------------------------------------------------
+// Present so the data model is stable and attachments can hang off reviews.
+// No review UI or workflow logic is built in Stage 1.
+
+enum ReviewType {
+  QUARTERLY
+  ANNUAL_VALUES
+  YEAR_END
+}
+
+enum ReviewStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  SUBMITTED
+  AWAITING_MANAGER
+  COMPLETE
+  REOPENED
+}
+
+model ReviewCycle {
+  id               String     @id @default(cuid())
+  type             ReviewType
+  label            String // e.g. "Q2 2026"
+  employeeDeadline DateTime?
+  managerDeadline  DateTime?
+  isOpen           Boolean    @default(false)
+  reviews          Review[]
+  createdAt        DateTime   @default(now())
+}
+
+model Review {
+  id          String       @id @default(cuid())
+  cycleId     String
+  cycle       ReviewCycle  @relation(fields: [cycleId], references: [id])
+  type        ReviewType
+  employeeId  String
+  employee    Employee     @relation("ReviewEmployee", fields: [employeeId], references: [id])
+  managerId   String
+  manager     Employee     @relation("ReviewManager", fields: [managerId], references: [id])
+  status      ReviewStatus @default(NOT_STARTED)
+  // Which guide version this review was written against (immutability of guidance).
+  guideVersionId String?
+// Computed quarterly score (1..5, one decimal). Null until calculated.
+  quarterlyScore Float?
+
+  // Stage 2 structured narrative fields (separate from scored ratings).
+  okrContribution    String?
+  developmentAction  String?
+  employeeReflection String?
+
+  events      ReviewEvent[]
+  ratings     ReviewRating[]
+  attachments Attachment[] // future-proofing (no upload UI in Stage 1)
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([employeeId])
+  @@index([managerId])
+  @@index([cycleId])
+}
+
+enum RaterSide {
+  EMPLOYEE
+  MANAGER
+}
+
+// Both employee and manager ratings are stored SEPARATELY and never blended.
+model ReviewRating {
+  id       String    @id @default(cuid())
+  reviewId String
+  review   Review    @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  side     RaterSide
+  item     String // "IMPACT" | "QUALITY" | "DELIVERY" | value name
+  score    Int // 1..5
+  comment  String?
+
+  @@unique([reviewId, side, item])
+}
+
+// ---------------------------------------------------------------------------
+// FUTURE-PROOFING: attachments (no upload UI in Stage 1)
+// ---------------------------------------------------------------------------
+// Polymorphic-by-convention: an attachment points at one owning entity via
+// (ownerType, ownerId). Adding attachments to development plans later needs NO
+// change to existing tables — just new rows with ownerType = "DevelopmentPlan".
+
+model Attachment {
+  id         String   @id @default(cuid())
+  ownerType  String // "Review" | "DevelopmentPlan" | ...
+  ownerId    String
+  fileName   String
+  mimeType   String?
+  // Where the bytes live once uploads exist (e.g. object-storage key). Nullable now.
+  storageKey String?
+  uploadedBy String? // employee id
+  createdAt  DateTime @default(now())
+
+  // Convenience relation for reviews (optional; kept loose for other owners).
+  review     Review?  @relation(fields: [ownerId], references: [id], map: "attachment_review_fk")
+
+  @@index([ownerType, ownerId])
+}
+
+// ---------------------------------------------------------------------------
+// Audit Timeline (user-facing) — see docs/DESIGN_audit_timeline.md
+// Review-scoped, human-readable activity history. NOT the compliance AuditLog.
+// ---------------------------------------------------------------------------
+
+enum ReviewEventType {
+  CREATED
+  DRAFT_SAVED
+  SUBMITTED
+  RETURNED
+  MANAGER_OPENED
+  MANAGER_COMPLETED
+  REOPENED
+  CLOSED
+}
+
+model ReviewEvent {
+  id         String          @id @default(cuid())
+  reviewId   String
+  review     Review          @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  type       ReviewEventType
+  at         DateTime        @default(now())
+  actorId    String
+  actorName  String
+  detail     String?
+
+  @@index([reviewId, at])
+}

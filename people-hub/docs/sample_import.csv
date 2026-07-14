@@ -1,0 +1,6 @@
+workEmail,displayName,role,department,location,employmentStatus,managerEmail,ratingGuideCategory
+t.werner@example.test,Tomas Werner,Data Engineer,Engineering,Bahrain,Active,s.park@example.test,ENGINEERING
+h.aziz@example.test,Hana Aziz,Product Designer,Product,UAE,Active,a.khan@example.test,PRODUCT
+k.demir@example.test,Kerem Demir,SDR,Commercial,KSA,Active,r.mansour@example.test,SALES_COMMERCIAL
+o.blanc@example.test,Olivia Blanc,Ops Coordinator,Operations,Bahrain,Active,j.silva@example.test,
+b.ghost@example.test,Ben Ghost,Analyst,Operations,Bahrain,Active,nobody@example.test,OPERATIONS
