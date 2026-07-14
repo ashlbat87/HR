@@ -1,5 +1,9 @@
+// My Reviews — lists the person's own reviews and, for managers, their team's.
+// HR gets controls to generate reviews for open cycles (quarterly and values).
+// Reviews of both types (QUARTERLY, ANNUAL_VALUES) are shown, labelled by type.
+
 import { getCurrentUser } from "@/core/auth";
-import { requireSignedIn, isHR } from "@/core/access";
+import { requireSignedIn, isHR, isManager } from "@/core/access";
 import { prisma } from "@/shared/lib/prisma";
 import Link from "next/link";
 import { CreateCycleReviews } from "./CreateCycleReviews";
@@ -12,15 +16,32 @@ const STATUS_LABEL: Record<string, string> = {
   COMPLETE: "Complete",
   REOPENED: "Reopened",
 };
+const STATUS_CLASS: Record<string, string> = {
+  NOT_STARTED: "status-outstanding",
+  IN_PROGRESS: "status-inprogress",
+  SUBMITTED: "status-submitted",
+  AWAITING_MANAGER: "status-awaiting",
+  COMPLETE: "status-completed",
+  REOPENED: "status-reopened",
+};
+const TYPE_LABEL: Record<string, string> = {
+  QUARTERLY: "Quarterly review",
+  ANNUAL_VALUES: "Annual values review",
+  YEAR_END: "Year-end summary",
+};
 
-function reviewRow(r: { id: string; status: string; employeeName: string; cycleLabel: string }) {
+function ReviewRow({ r }: { r: any }) {
   return (
-    <tr key={r.id}>
-      <td>{r.employeeName}</td>
-      <td>{r.cycleLabel}</td>
-      <td><span className="chip">{STATUS_LABEL[r.status] ?? r.status}</span></td>
-      <td><Link href={"/reviews/" + r.id}>Open</Link></td>
-    </tr>
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "11px 0", borderBottom: "0.5px solid var(--n20)" }}>
+      <div>
+        <div style={{ fontWeight: 500 }}>{TYPE_LABEL[r.type] ?? r.type} · {r.cycle.label}</div>
+        <div className="muted" style={{ fontSize: 13 }}>{r.employee.displayName}</div>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <span className={`chip ${STATUS_CLASS[r.status] ?? ""}`}>{STATUS_LABEL[r.status] ?? r.status}</span>
+        <Link href={`/reviews/${r.id}`}>Open</Link>
+      </div>
+    </div>
   );
 }
 
@@ -28,59 +49,51 @@ export default async function MyReviewsPage() {
   const user = requireSignedIn(await getCurrentUser());
 
   const myReviews = await prisma.review.findMany({
-    where: { employeeId: user.employeeId, type: "QUARTERLY" },
-    include: { employee: true, cycle: true },
+    where: { employeeId: user.employeeId },
+    include: { cycle: true, employee: true },
     orderBy: { createdAt: "desc" },
   });
 
-  const teamReviews = await prisma.review.findMany({
-    where: { managerId: user.employeeId, type: "QUARTERLY" },
-    include: { employee: true, cycle: true },
-    orderBy: [{ status: "asc" }, { createdAt: "desc" }],
-  });
+  const teamReviews = isManager(user)
+    ? await prisma.review.findMany({
+        where: { managerId: user.employeeId },
+        include: { cycle: true, employee: true },
+        orderBy: [{ cycle: { createdAt: "desc" } }, { employee: { displayName: "asc" } }],
+      })
+    : [];
 
-  const openCycle = await prisma.reviewCycle.findFirst({
-    where: { type: "QUARTERLY", isOpen: true },
-    orderBy: { createdAt: "desc" },
-  });
+  const openCycles = isHR(user)
+    ? await prisma.reviewCycle.findMany({ where: { isOpen: true }, orderBy: { createdAt: "desc" } })
+    : [];
 
   return (
     <div>
       <h1>My Reviews</h1>
 
-      {isHR(user) && openCycle ? (
-        <CreateCycleReviews cycleId={openCycle.id} label={openCycle.label} />
+      {isHR(user) && openCycles.length > 0 ? (
+        <>
+          <h2>HR: generate reviews</h2>
+          {openCycles.map((c) => (
+            <CreateCycleReviews key={c.id} cycleId={c.id} label={c.label} type={c.type} />
+          ))}
+        </>
       ) : null}
 
-      <h2>My quarterly review</h2>
+      <h2>Your reviews</h2>
       {myReviews.length === 0 ? (
-        <div className="empty">You have no quarterly review yet.</div>
+        <div className="empty">You have no reviews yet.</div>
       ) : (
-        <table>
-          <thead>
-            <tr><th>Employee</th><th>Cycle</th><th>Status</th><th></th></tr>
-          </thead>
-          <tbody>
-            {myReviews.map((r) =>
-              reviewRow({ id: r.id, status: r.status, employeeName: r.employee.displayName, cycleLabel: r.cycle.label })
-            )}
-          </tbody>
-        </table>
+        <div className="card">{myReviews.map((r) => <ReviewRow key={r.id} r={r} />)}</div>
       )}
 
-      {teamReviews.length > 0 ? (
+      {isManager(user) ? (
         <>
-          <h2>My team's reviews</h2>
-          <table>
-            <thead>
-              <tr><th>Employee</th><th>Cycle</th><th>Status</th><th></th></tr>
-            </thead>
-            <tbody>
-              {teamReviews.map((r) =>
-                reviewRow({ id: r.id, status: r.status, employeeName: r.employee.displayName, cycleLabel: r.cycle.label })
-              )}
-            </tbody>
-          </table>
+          <h2>Your team&apos;s reviews</h2>
+          {teamReviews.length === 0 ? (
+            <div className="empty">No reviews for your team yet.</div>
+          ) : (
+            <div className="card">{teamReviews.map((r) => <ReviewRow key={r.id} r={r} />)}</div>
+          )}
         </>
       ) : null}
     </div>

@@ -131,6 +131,10 @@ async function main() {
   await prisma.reviewCycle.create({
     data: { type: "QUARTERLY", label: "Q2 2026", isOpen: true },
   });
+  // An open annual values cycle for Stage 3.
+  await prisma.reviewCycle.create({
+    data: { type: "ANNUAL_VALUES", label: "Values 2026", isOpen: true },
+  });
 
   // A couple of placeholder notifications for the HR admin.
   const wafa = await prisma.employee.findUnique({ where: { workEmail: "wafa@example.test" } });
