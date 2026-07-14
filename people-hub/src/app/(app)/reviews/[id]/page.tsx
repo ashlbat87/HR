@@ -7,6 +7,14 @@ import { canViewReview, managerOpen, getVisibleTimeline } from "@/modules/perfor
 import { ReviewForm } from "../ReviewForm";
 import { ReviewTimeline } from "@/modules/performance/ReviewTimeline";
 
+const STATUS_CLASS: Record<string, string> = {
+  NOT_STARTED: "status-outstanding",
+  IN_PROGRESS: "status-inprogress",
+  SUBMITTED: "status-submitted",
+  AWAITING_MANAGER: "status-awaiting",
+  COMPLETE: "status-completed",
+  REOPENED: "status-reopened",
+};
 const STATUS_LABEL: Record<string, string> = {
   NOT_STARTED: "Not started",
   IN_PROGRESS: "In progress",
@@ -56,15 +64,16 @@ export default async function ReviewDetailPage({
 
   return (
     <div>
-      <p className="muted">
-        <Link href="/reviews">← My reviews</Link>
+      <p className="muted" style={{ fontSize: 12, marginBottom: 12 }}>
+        <Link href="/reviews">My reviews</Link> › {review.employee.displayName}
       </p>
-      <h1>Quarterly review · {review.cycle.label}</h1>
-      <div className="card">
-        <div><strong>Employee:</strong> {review.employee.displayName}</div>
-        <div><strong>Manager:</strong> {review.manager.displayName}</div>
-        <div><strong>Status:</strong> <span className="chip">{STATUS_LABEL[status] ?? status}</span></div>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
+        <h1 style={{ margin: 0 }}>Quarterly review · {review.cycle.label}</h1>
+        <span className={`chip ${STATUS_CLASS[status] ?? ""}`}>{STATUS_LABEL[status] ?? status}</span>
       </div>
+      <p className="muted" style={{ marginTop: 0, marginBottom: 18 }}>
+        {review.employee.displayName} · manager: {review.manager.displayName}
+      </p>
 
       <h2>Scores and narrative</h2>
       <ReviewForm
