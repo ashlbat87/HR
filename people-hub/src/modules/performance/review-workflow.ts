@@ -45,7 +45,7 @@ async function recordEvent(reviewId: string, type: ReviewEventType, actor: AuthU
   });
 }
 
-const AUDITED: ReviewEventType[] = ["REOPENED", "CLOSED", "SUBMITTED"];
+const AUDITED: ReviewEventType[] = ["REOPENED", "CLOSED", "SUBMITTED", "ACKNOWLEDGED"];
 
 async function recordEventAndMaybeAudit(reviewId: string, type: ReviewEventType, actor: AuthUser, detail?: string) {
   await recordEvent(reviewId, type, actor, detail);
@@ -249,3 +249,189 @@ async function upsertRatings(reviewId: string, side: RaterSide, ratings: { item:
     });
   }
 }
+
+// =============================================================================
+// STAGE 3 — Annual Values Review (Option 2: thin wrappers reusing shared
+// internals above). The state machine, permission helpers, timeline/audit
+// plumbing, upsertRatings, and the mean calculation are all reused unchanged.
+// Only the item set, the cycle type, and the target score field differ.
+// =============================================================================
+
+// The four Tarabut values scored in an annual values review.
+export const VALUES_ITEMS = [
+  "INNOVATE_WITH_IMPACT",
+  "DRIVE_EXCEPTIONAL_RESULTS",
+  "DELIVER_VALUE_TO_CUSTOMERS",
+  "WIN_COLLECTIVELY",
+] as const;
+export type ValuesItem = (typeof VALUES_ITEMS)[number];
+
+// Human-readable labels for the four values (for UI and anchors lookup).
+export const VALUES_LABELS: Record<ValuesItem, string> = {
+  INNOVATE_WITH_IMPACT: "Innovate with Impact",
+  DRIVE_EXCEPTIONAL_RESULTS: "Drive Exceptional Results",
+  DELIVER_VALUE_TO_CUSTOMERS: "Deliver Value to Customers",
+  WIN_COLLECTIVELY: "Win Collectively",
+};
+
+// Create annual values reviews for every eligible employee in an open
+// ANNUAL_VALUES cycle. Same shape as createQuarterlyReviewsForCycle; reuses the
+// same recordEvent/audit. Idempotent. HR only (enforced by caller).
+export async function createValuesReviewsForCycle(
+  cycleId: string,
+  actor: AuthUser
+): Promise<{ created: number; skipped: number }> {
+  const cycle = await prisma.reviewCycle.findUnique({ where: { id: cycleId } });
+  if (!cycle) throw new WorkflowError("Cycle not found.");
+  if (cycle.type !== "ANNUAL_VALUES")
+    throw new WorkflowError("This cycle is not an annual values cycle.");
+
+  const employees = await prisma.employee.findMany({
+    where: { managerId: { not: null }, employmentStatus: "ACTIVE" },
+    select: { id: true, managerId: true },
+  });
+
+  let created = 0;
+  let skipped = 0;
+  for (const emp of employees) {
+    const existing = await prisma.review.findFirst({
+      where: { cycleId, employeeId: emp.id, type: "ANNUAL_VALUES" },
+    });
+    if (existing) {
+      skipped++;
+      continue;
+    }
+    const review = await prisma.review.create({
+      data: {
+        cycleId,
+        type: "ANNUAL_VALUES",
+        employeeId: emp.id,
+        managerId: emp.managerId!,
+        status: "NOT_STARTED",
+      },
+    });
+    await recordEvent(review.id, "CREATED", actor);
+    created++;
+  }
+
+  await recordAudit({
+    actorEmail: actor.email,
+    action: "review.create_batch",
+    entityType: "ReviewCycle",
+    entityId: cycleId,
+    detail: `values created=${created}, skipped=${skipped}`,
+  });
+  return { created, skipped };
+}
+
+// Save the employee's values draft: four per-value scores + optional per-value
+// comments + optional overall reflection. Reuses upsertRatings + recordEvent.
+export async function saveEmployeeValuesDraft(
+  reviewId: string,
+  actor: AuthUser,
+  draft: {
+    ratings: { item: ValuesItem; score: number; comment?: string }[];
+    employeeReflection?: string;
+  }
+): Promise<void> {
+  const review = await getReviewOrThrow(reviewId);
+  if (review.type !== "ANNUAL_VALUES")
+    throw new WorkflowError("Not an annual values review.");
+  if (!isReviewEmployee(actor, review))
+    throw new WorkflowError("Only the review's employee can save this draft.");
+  if (!["NOT_STARTED", "IN_PROGRESS"].includes(review.status))
+    throw new WorkflowError("Draft can only be saved while in progress.");
+
+  await upsertRatings(reviewId, "EMPLOYEE", draft.ratings as any);
+  await prisma.review.update({
+    where: { id: reviewId },
+    data: {
+      status: "IN_PROGRESS",
+      employeeReflection: draft.employeeReflection ?? undefined,
+    },
+  });
+  await recordEvent(reviewId, "DRAFT_SAVED", actor);
+}
+
+// Submit the employee's values review. Requires all four value scores.
+export async function submitValuesReview(reviewId: string, actor: AuthUser): Promise<void> {
+  const review = await getReviewOrThrow(reviewId);
+  if (review.type !== "ANNUAL_VALUES")
+    throw new WorkflowError("Not an annual values review.");
+  if (!isReviewEmployee(actor, review))
+    throw new WorkflowError("Only the review's employee can submit.");
+  assertTransition(review.status, "SUBMITTED");
+
+  const selfScores = await prisma.reviewRating.count({
+    where: { reviewId, side: "EMPLOYEE" },
+  });
+  if (selfScores < VALUES_ITEMS.length)
+    throw new WorkflowError("Please score all four values before submitting.");
+
+  await prisma.review.update({ where: { id: reviewId }, data: { status: "SUBMITTED" } });
+  await recordEventAndMaybeAudit(reviewId, "SUBMITTED", actor);
+}
+
+// Save the manager's values draft: four per-value scores + optional comments.
+export async function saveManagerValuesDraft(
+  reviewId: string,
+  actor: AuthUser,
+  draft: { ratings: { item: ValuesItem; score: number; comment?: string }[] }
+): Promise<void> {
+  const review = await getReviewOrThrow(reviewId);
+  if (review.type !== "ANNUAL_VALUES")
+    throw new WorkflowError("Not an annual values review.");
+  if (!isReviewManager(actor, review))
+    throw new WorkflowError("Only the review's manager can save manager scores.");
+  if (!["AWAITING_MANAGER", "REOPENED"].includes(review.status))
+    throw new WorkflowError("Manager scores can only be saved after opening.");
+
+  await upsertRatings(reviewId, "MANAGER", draft.ratings as any);
+  await recordEvent(reviewId, "DRAFT_SAVED", actor);
+}
+
+// Manager completes the values review: mean of the four MANAGER value scores,
+// written to valuesScore (NEVER quarterlyScore — performance and values stay
+// separate). Reuses calculateQuarterlyScore purely as a generic mean helper.
+export async function managerCompleteValues(reviewId: string, actor: AuthUser): Promise<void> {
+  const review = await getReviewOrThrow(reviewId);
+  if (review.type !== "ANNUAL_VALUES")
+    throw new WorkflowError("Not an annual values review.");
+  if (!isReviewManager(actor, review))
+    throw new WorkflowError("Only the review's manager can complete it.");
+  if (!["AWAITING_MANAGER", "REOPENED"].includes(review.status))
+    throw new WorkflowError("Review is not awaiting manager completion.");
+
+  const managerScores = await prisma.reviewRating.findMany({
+    where: { reviewId, side: "MANAGER" },
+  });
+  if (managerScores.length < VALUES_ITEMS.length)
+    throw new WorkflowError("Please score all four values before completing.");
+
+  const score = calculateQuarterlyScore(managerScores.map((r) => r.score));
+  await prisma.review.update({
+    where: { id: reviewId },
+    data: { status: "COMPLETE", valuesScore: score },
+  });
+  await recordEvent(reviewId, "MANAGER_COMPLETED", actor);
+}
+
+// Employee acknowledges having SEEN the completed review (a read sign-off, not
+// agreement). Only available once COMPLETE. Records the ACKNOWLEDGED event
+// (source of truth) and updates the denormalised pointer on Review.
+export async function acknowledgeReview(reviewId: string, actor: AuthUser): Promise<void> {
+  const review = await getReviewOrThrow(reviewId);
+  if (!isReviewEmployee(actor, review))
+    throw new WorkflowError("Only the review's employee can acknowledge it.");
+  if (review.status !== "COMPLETE")
+    throw new WorkflowError("Only a completed review can be acknowledged.");
+
+  await recordEventAndMaybeAudit(reviewId, "ACKNOWLEDGED", actor);
+  await prisma.review.update({
+    where: { id: reviewId },
+    data: { acknowledgedAt: new Date(), acknowledgedBy: actor.employeeId },
+  });
+}
+
+// Shared reopen/close/return/managerOpen already work for any review type
+// (they are type-agnostic), so annual values reviews reuse them directly.
