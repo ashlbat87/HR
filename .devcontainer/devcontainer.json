@@ -1,0 +1,13 @@
+{
+  "name": "People Hub (Stage 2)",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:20-bookworm",
+  "features": {
+    "ghcr.io/itsmechlark/features/postgresql:1": {
+      "version": "16"
+    }
+  },
+  "postCreateCommand": "sudo service postgresql start && sudo -u postgres psql -c \"ALTER USER postgres PASSWORD 'postgres';\" && sudo -u postgres psql -c \"CREATE DATABASE people_hub;\" || true",
+  "postStartCommand": "sudo service postgresql start || true",
+  "forwardPorts": [3000, 5432],
+  "workspaceFolder": "/workspaces/HR"
+}
