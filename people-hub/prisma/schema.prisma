@@ -229,8 +229,20 @@ model Review {
   status      ReviewStatus @default(NOT_STARTED)
   // Which guide version this review was written against (immutability of guidance).
   guideVersionId String?
-// Computed quarterly score (1..5, one decimal). Null until calculated.
-  quarterlyScore Float?
+// Headline scores. INVARIANT: per-item scores live authoritatively in
+  // ReviewRating; these columns are denormalised convenience, derived from the
+  // manager-side ratings, never the sole source of truth. New review types add
+  // their own named score column here (additive, non-destructive). Performance
+  // and Values are kept as SEPARATE named fields by deliberate business rule and
+  // must never be blended anywhere in app, reporting, or database.
+  quarterlyScore Float? // QUARTERLY reviews: mean of manager Impact/Quality/Delivery
+  valuesScore    Float? // ANNUAL_VALUES reviews: mean of manager four-value scores
+
+  // Acknowledgement: the ACKNOWLEDGED ReviewEvent is the source of truth (full
+  // history, survives reopen/re-acknowledge). These two are a denormalised
+  // pointer to the most recent acknowledgement, for convenient display/query.
+  acknowledgedAt DateTime?
+  acknowledgedBy String?
 
   // Stage 2 structured narrative fields (separate from scored ratings).
   okrContribution    String?
@@ -305,6 +317,7 @@ enum ReviewEventType {
   MANAGER_COMPLETED
   REOPENED
   CLOSED
+  ACKNOWLEDGED
 }
 
 model ReviewEvent {

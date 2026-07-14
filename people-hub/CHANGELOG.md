@@ -1,3 +1,17 @@
+## [0.4] — Stage 3: Annual Values Review (planning approved; implementation starting)
+
+Planning for the Annual Values Review is approved (Product Roadmap v1.0 and Stage 3
+Technical Plan). Implementation is beginning; this entry completes when built and accepted.
+
+Planned scope: two-sided values workflow for the four Tarabut values, per-value
+employee and manager ratings and comments, values rating guide inline, overall values
+score from manager ratings only (never blended with the quarterly score), electronic
+acknowledgement (employee sees completed review), user-facing timeline, compliance
+audit log, server-side permissions, rating-difference highlighting, draft/return/reopen/close.
+
+Architecture: the shared quarterly workflow and form are being generalised to serve
+both review types; the Stage 2 acceptance harness is a mandatory regression gate.
+
 # Changelog
 
 All notable changes to the Tarabut People Hub are recorded here.

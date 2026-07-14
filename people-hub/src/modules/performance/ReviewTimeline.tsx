@@ -13,6 +13,7 @@ const LABELS: Record<ReviewEventType, string> = {
   MANAGER_COMPLETED: "Manager completed",
   REOPENED: "Reopened",
   CLOSED: "Closed",
+  ACKNOWLEDGED: "Acknowledged",
 };
 
 function formatWhen(at: Date): string {
