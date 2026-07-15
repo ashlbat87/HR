@@ -93,7 +93,7 @@ export default async function ReviewDetailPage({
         <span className={`chip ${STATUS_CLASS[status] ?? ""}`}>{STATUS_LABEL[status] ?? status}</span>
       </div>
       <p className="muted" style={{ marginTop: 0, marginBottom: 18 }}>
-        {review.employee.displayName} · manager: {review.manager.displayName}
+        {review.employee.displayName} · Manager: {review.manager.displayName}
       </p>
  {isYearEnd ? (
         <YearEndForm
