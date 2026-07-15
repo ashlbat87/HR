@@ -245,3 +245,87 @@ export async function completeValuesWithDraftAction(
     await managerCompleteValues(reviewId, user);
   }, `/reviews/${reviewId}`);
 }
+
+// =============================================================================
+// STAGE 4 / v0.5 — Year-End Summary server actions. Thin wrappers over the
+// year-end workflow functions, reusing run() and the auth pattern above.
+// =============================================================================
+import {
+  createYearEndReviewsForCycle,
+  saveEmployeeYearEndDraft,
+  submitYearEndReview,
+  saveManagerYearEndDraft,
+  managerCompleteYearEnd,
+  acknowledgeYearEnd,
+  reopenArchivedYearEnd,
+} from "@/modules/performance/review-workflow";
+
+export async function createYearEndCycleReviewsAction(cycleId: string): Promise<ActionResult> {
+  const user = await getCurrentUser();
+  if (!user || !isHR(user)) return { error: "HR access required." };
+  return run(async () => {
+    await createYearEndReviewsForCycle(cycleId, user);
+  }, "/reviews");
+}
+
+export async function saveEmployeeYearEndDraftAction(
+  reviewId: string,
+  employeeOverallAssessment?: string
+): Promise<ActionResult> {
+  const user = await getCurrentUser();
+  if (!user) return { error: "Please sign in." };
+  return run(async () => {
+    await saveEmployeeYearEndDraft(reviewId, user, { employeeOverallAssessment });
+  }, `/reviews/${reviewId}`);
+}
+
+export async function submitYearEndWithDraftAction(
+  reviewId: string,
+  employeeOverallAssessment?: string
+): Promise<ActionResult> {
+  const user = await getCurrentUser();
+  if (!user) return { error: "Please sign in." };
+  return run(async () => {
+    await saveEmployeeYearEndDraft(reviewId, user, { employeeOverallAssessment });
+    await submitYearEndReview(reviewId, user);
+  }, `/reviews/${reviewId}`);
+}
+
+export async function saveManagerYearEndDraftAction(
+  reviewId: string,
+  draft: { managerOverallAssessment?: string; areasForGrowth?: string; developmentPlan?: string }
+): Promise<ActionResult> {
+  const user = await getCurrentUser();
+  if (!user) return { error: "Please sign in." };
+  return run(async () => {
+    await saveManagerYearEndDraft(reviewId, user, draft);
+  }, `/reviews/${reviewId}`);
+}
+
+export async function completeYearEndWithDraftAction(
+  reviewId: string,
+  draft: { managerOverallAssessment?: string; areasForGrowth?: string; developmentPlan?: string }
+): Promise<ActionResult> {
+  const user = await getCurrentUser();
+  if (!user) return { error: "Please sign in." };
+  return run(async () => {
+    await saveManagerYearEndDraft(reviewId, user, draft);
+    await managerCompleteYearEnd(reviewId, user);
+  }, `/reviews/${reviewId}`);
+}
+
+export async function acknowledgeYearEndAction(reviewId: string): Promise<ActionResult> {
+  const user = await getCurrentUser();
+  if (!user) return { error: "Please sign in." };
+  return run(async () => {
+    await acknowledgeYearEnd(reviewId, user);
+  }, `/reviews/${reviewId}`);
+}
+
+export async function reopenArchivedYearEndAction(reviewId: string, reason: string): Promise<ActionResult> {
+  const user = await getCurrentUser();
+  if (!user || !isHR(user)) return { error: "HR access required." };
+  return run(async () => {
+    await reopenArchivedYearEnd(reviewId, user, reason);
+  }, `/reviews/${reviewId}`);
+}
