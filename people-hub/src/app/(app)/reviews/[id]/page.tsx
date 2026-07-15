@@ -3,9 +3,10 @@ import { isHR } from "@/core/access";
 import { redirect, notFound } from "next/navigation";
 import { prisma } from "@/shared/lib/prisma";
 import Link from "next/link";
-import { canViewReview, managerOpen, getVisibleTimeline } from "@/modules/performance/review-workflow";
+import { canViewReview, managerOpen, getVisibleTimeline, assembleYearEndData } from "@/modules/performance/review-workflow";
 import { ReviewForm } from "../ReviewForm";
 import { ValuesReviewForm } from "../ValuesReviewForm";
+import { YearEndForm } from "../YearEndForm";
 import { ReviewTimeline } from "@/modules/performance/ReviewTimeline";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -57,7 +58,14 @@ export default async function ReviewDetailPage({
   const timeline = await getVisibleTimeline(review.id, user, review);
   const mode: "employee" | "manager" = isManager ? "manager" : "employee";
   const isValues = review.type === "ANNUAL_VALUES";
-  const title = isValues ? "Annual values review" : "Quarterly review";
+  const isYearEnd = review.type === "YEAR_END";
+  const title = isYearEnd ? "Year-end summary" : isValues ? "Annual values review" : "Quarterly review";
+
+  // For year-end summaries, assemble the quarterly + values data.
+  let yearEnd: Awaited<ReturnType<typeof assembleYearEndData>> | null = null;
+  if (isYearEnd) {
+    yearEnd = await assembleYearEndData(review.employeeId);
+  }
 
   // For values reviews, load the current VALUES guide anchors to show inline.
   let anchors: Record<string, Record<number, string>> = {};
@@ -87,8 +95,25 @@ export default async function ReviewDetailPage({
       <p className="muted" style={{ marginTop: 0, marginBottom: 18 }}>
         {review.employee.displayName} · manager: {review.manager.displayName}
       </p>
-
-      {isValues ? (
+ {isYearEnd ? (
+        <YearEndForm
+          reviewId={review.id}
+          mode={mode}
+          status={status}
+          isEmployee={isEmployee}
+          canReopenArchived={isHR(user)}
+          quarters={(yearEnd?.quarters ?? []).map((q) => ({ label: q.cycle.label, quarterlyScore: q.quarterlyScore }))}
+          quartersCompleted={yearEnd?.quartersCompleted ?? 0}
+          annualPerformanceScore={fresh?.annualPerformanceScore ?? review.annualPerformanceScore}
+          valuesScore={yearEnd?.valuesScore ?? null}
+          valuesComplete={yearEnd?.valuesComplete ?? false}
+          employeeOverallAssessment={review.employeeOverallAssessment ?? ""}
+          managerOverallAssessment={review.managerOverallAssessment ?? ""}
+          areasForGrowth={review.areasForGrowth ?? ""}
+          developmentPlan={review.developmentPlan ?? ""}
+          acknowledgedAt={review.acknowledgedAt ? review.acknowledgedAt.toISOString() : null}
+        />
+      ) : isValues ? (
         <ValuesReviewForm
           reviewId={review.id}
           mode={mode}
