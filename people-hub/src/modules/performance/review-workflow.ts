@@ -23,8 +23,9 @@ const TRANSITIONS: Record<ReviewStatus, ReviewStatus[]> = {
   IN_PROGRESS: ["IN_PROGRESS", "SUBMITTED"],
   SUBMITTED: ["AWAITING_MANAGER", "IN_PROGRESS"],
   AWAITING_MANAGER: ["COMPLETE", "IN_PROGRESS"],
-  COMPLETE: ["REOPENED"],
+  COMPLETE: ["REOPENED", "ARCHIVED"],
   REOPENED: ["AWAITING_MANAGER", "COMPLETE"],
+  ARCHIVED: ["REOPENED"],
 };
 
 function assertTransition(from: ReviewStatus, to: ReviewStatus) {

@@ -204,6 +204,7 @@ enum ReviewStatus {
   AWAITING_MANAGER
   COMPLETE
   REOPENED
+  ARCHIVED
 }
 
 model ReviewCycle {
@@ -243,7 +244,16 @@ model Review {
   // pointer to the most recent acknowledgement, for convenient display/query.
   acknowledgedAt DateTime?
   acknowledgedBy String?
-
+// YEAR_END (v0.5) fields. Additive. annualPerformanceScore is the average of the
+  // completed quarterly manager Q Scores — numeric only, NO label stored (labels are
+  // a future policy decision, introducible as a display-time function of this number
+  // with no DB or calculation change). Kept separate from quarterlyScore and
+  // valuesScore; performance and values are never blended.
+  annualPerformanceScore    Float?
+  managerOverallAssessment  String?
+  employeeOverallAssessment String?
+  areasForGrowth            String?
+  developmentPlan           String?
   // Stage 2 structured narrative fields (separate from scored ratings).
   okrContribution    String?
   developmentAction  String?
@@ -318,6 +328,7 @@ enum ReviewEventType {
   REOPENED
   CLOSED
   ACKNOWLEDGED
+  ARCHIVED
 }
 
 model ReviewEvent {
