@@ -1,28 +1,34 @@
-## [0.4] — Stage 3: Annual Values Review (COMPLETE)
+## [0.5] — Stage 4 / Release v0.5: Year-End Summary (planning approved; implementation starting)
 
-Annual Values Review delivered and accepted. Two-sided workflow for the four
-Tarabut values (Innovate with Impact, Drive Exceptional Results, Deliver Value to
-Customers, Win Collectively), each with employee self-rating + comment and manager
-rating + comment, and the values rating guide shown inline with anchors.
+Planning approved with HR decisions incorporated. Implementation beginning; this
+entry completes when built and accepted.
 
-Overall values score is the mean of the manager's four scores only, stored in a
-separate valuesScore field and NEVER blended with the quarterly performance score.
-Employee self-scores are recorded and shown for comparison but are never official.
+Scope: a per-employee YEAR_END review assembling the four quarterly reviews and the
+annual values review, with an Annual Performance Score (average of completed quarterly
+manager Q Scores), the values score shown separately (never blended), four dedicated
+narrative fields, a Performance Journey visual, electronic acknowledgement, and a new
+Archived terminal state.
 
-Includes: draft saving, status tracking, validation (all four values required to
-submit/complete), return to employee, reopen, close, rating-difference
-highlighting, the user-facing audit timeline plus compliance audit log, and
-electronic acknowledgement (employee acknowledges having seen the completed review,
-recorded as an ACKNOWLEDGED event with denormalised pointer). Once complete, the
-employee sees the manager's per-value assessment. Server-side permissions enforced.
+Approved HR decisions:
+1. Mandatory: Employee Overall Self-Assessment (employee); Manager Overall Assessment
+   and Development Plan (manager). Optional: Areas for Growth.
+2. The Annual Values Review must be complete before the Year-End Summary can be
+   completed (it may be prepared beforehand).
+3. Four explicit dedicated narrative fields (no reuse of generic columns).
+4. One YEAR_END review per employee per annual cycle, HR-created.
+5. Annual Performance Score is numeric only for v0.5 — no descriptive band/label shown
+   or stored; numeric score is the source of truth; labels are a future policy decision
+   introducible later with no DB or calculation change.
 
-Architecture: the shared quarterly workflow and form logic were generalised to
-serve both review types (Option C: shared tested internals, separate presentational
-form). Quarterly UI left untouched.
+Additional: (a) Archived terminal state — after manager completion and employee
+acknowledgement the review becomes read-only Archived; only HR may reopen. (b) A small
+Performance Journey visual showing Q1–Q4 progression and the annual score, using
+existing design-system components.
 
-Verification: Stage 3 acceptance harness 6/6 (scripts/stage3-acceptance.ts); Stage 2
-regression 6/6 (scripts/stage2-acceptance.ts); typecheck clean. Prototype release;
-fictional data only.
+Architecture: reuses the shared workflow, state machine, timeline, audit,
+acknowledgement, permissions, rating-label mapping, and the v0.4 two-score component.
+New: assembly query, four narrative fields, Archived state, Performance Journey visual.
+Stage 2 and Stage 3 regression harnesses are mandatory gates.
 
 # Changelog
 
