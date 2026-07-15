@@ -135,7 +135,12 @@ async function main() {
   await prisma.reviewCycle.create({
     data: { type: "ANNUAL_VALUES", label: "Values 2026", isOpen: true },
   });
-
+await prisma.reviewCycle.create({
+    data: { type: "ANNUAL_VALUES", label: "Values 2026", isOpen: true },
+  });
+  await prisma.reviewCycle.create({
+    data: { type: "YEAR_END", label: "Year-End 2026", isOpen: true },
+  });
   // A couple of placeholder notifications for the HR admin.
   const wafa = await prisma.employee.findUnique({ where: { workEmail: "wafa@example.test" } });
   await prisma.notification.createMany({

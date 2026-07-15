@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { createCycleReviewsAction, createValuesCycleReviewsAction } from "./actions";
+import { createCycleReviewsAction, createValuesCycleReviewsAction, createYearEndCycleReviewsAction } from "./actions";
 
 export function CreateCycleReviews({ cycleId, label, type }: { cycleId: string; label: string; type: string }) {
   const [busy, setBusy] = useState(false);
@@ -9,13 +9,16 @@ export function CreateCycleReviews({ cycleId, label, type }: { cycleId: string; 
   const [err, setErr] = useState<string | null>(null);
 
   const isValues = type === "ANNUAL_VALUES";
-  const kindLabel = isValues ? "annual values" : "quarterly";
+  const isYearEnd = type === "YEAR_END";
+  const kindLabel = isYearEnd ? "year-end" : isValues ? "annual values" : "quarterly";
 
   async function go() {
     setBusy(true);
     setErr(null);
     setMsg(null);
-    const res = isValues
+    const res = isYearEnd
+      ? await createYearEndCycleReviewsAction(cycleId)
+      : isValues
       ? await createValuesCycleReviewsAction(cycleId)
       : await createCycleReviewsAction(cycleId);
     setBusy(false);
