@@ -18,6 +18,8 @@ interface Props {
   isEmployee: boolean;
   canReopenArchived: boolean;
   employeeName: string;
+  employeeRole: string;
+  managerName: string;
   quarters: QuarterRow[];
   quartersCompleted: number;
   annualPerformanceScore: number | null;
@@ -49,6 +51,7 @@ export function YearEndForm(props: Props) {
   const showManagerSections = !isEmp || empLocked;
   const firstName = props.employeeName.split(" ")[0] || props.employeeName;
   const initials = props.employeeName.split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase();
+  const showForward = showManagerSections;
 
   async function handle(fn: () => Promise<{ ok: true } | { error: string }>, msg: string) {
     setBusy(true); setError(null); setNotice(null);
@@ -66,34 +69,32 @@ export function YearEndForm(props: Props) {
   }
   const scoreDigit = (v: number | null) => (v !== null ? v.toFixed(1) : "—");
 
-  // A conversation beat: a purple chapter marker + heading, with content beneath.
-  const Beat = ({ step, title, children }: { step: string; title: string; children: React.ReactNode }) => (
-    <div style={{ display: "flex", gap: 16, marginBottom: 34 }}>
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
-        <div style={{ width: 30, height: 30, borderRadius: "50%", background: "var(--purple-subtle)", color: "var(--purple-dark)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 600 }}>{step}</div>
-        <div style={{ width: 2, flex: 1, background: "var(--border)", marginTop: 6 }} />
-      </div>
-      <div style={{ flex: 1, paddingBottom: 4 }}>
-        <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>{title}</div>
-        {children}
-      </div>
-    </div>
-  );
+  const heroLine = archived
+    ? "The record of this year's review conversation."
+    : isEmp
+    ? "A year worth looking back on. Let's talk through how it went, and what comes next."
+    : `A look back on ${firstName}'s year, and a conversation about what's next.`;
 
-  // A guided reflection: prompt + supporting line, then editable box or read prose.
   const Reflection = ({ prompt, hint, value, set, editable, placeholder }: any) => (
     <div>
       {!archived ? (
         <>
-          <div style={{ fontSize: 14, fontWeight: 500, color: "var(--text)", marginBottom: 3 }}>{prompt}</div>
-          <div style={{ fontSize: 13, color: "var(--muted)", marginBottom: 10 }}>{hint}</div>
+          <div style={{ fontSize: 22, fontWeight: 600, lineHeight: 1.3, marginBottom: 8, maxWidth: 460 }}>{prompt}</div>
+          <div style={{ fontSize: 14, color: "var(--muted)", marginBottom: 20, maxWidth: 460 }}>{hint}</div>
         </>
       ) : null}
       {editable ? (
-        <textarea value={value} rows={5} disabled={busy} onChange={(e) => set(e.target.value)} placeholder={placeholder} style={{ width: "100%", lineHeight: 1.7 }} />
+        <textarea value={value} rows={5} disabled={busy} onChange={(e) => set(e.target.value)} placeholder={placeholder}
+          style={{ width: "100%", lineHeight: 1.7, fontSize: 15, padding: 16, borderRadius: 12 }} />
       ) : (
-        <div style={{ fontSize: 14, lineHeight: 1.75, color: value ? "var(--text)" : "var(--muted)", whiteSpace: "pre-wrap" }}>{value || "Not yet provided."}</div>
+        <div style={{ fontSize: 15, lineHeight: 1.75, color: value ? "var(--text)" : "var(--muted)", whiteSpace: "pre-wrap" }}>{value || "Not yet provided."}</div>
       )}
+    </div>
+  );
+
+  const SectionIcon = () => (
+    <div style={{ width: 36, height: 36, borderRadius: 10, background: "var(--purple-subtle)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+      <div style={{ width: 16, height: 16, border: "2px solid var(--purple-dark)", borderRadius: "50% 50% 50% 2px" }} />
     </div>
   );
 
@@ -102,106 +103,135 @@ export function YearEndForm(props: Props) {
       {error ? <div className="chip status-overdue" style={{ display: "block", marginBottom: 16 }}>{error}</div> : null}
       {notice ? <div className="chip status-completed" style={{ display: "block", marginBottom: 16 }}>{notice}</div> : null}
 
-      {/* OPENING — the person, warmly */}
-      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 8 }}>
-        <div style={{ width: 52, height: 52, borderRadius: "50%", background: "var(--purple-subtle)", color: "var(--purple-dark)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 600 }}>{initials}</div>
-        <div>
-          <div style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--muted)" }}>Year-end review · 2026</div>
-          <div style={{ fontSize: 24, fontWeight: 600 }}>{props.employeeName}</div>
+      {/* HERO */}
+      {archived ? (
+        <div style={{ background: "var(--purple-subtle)", border: "0.5px solid var(--purple-light, #E0DCF8)", borderRadius: 18, padding: "30px 34px", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", top: 0, left: 0, width: 4, height: "100%", background: "var(--teal, #69F7C3)" }} />
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+              <div style={{ width: 48, height: 48, borderRadius: "50%", background: "#fff", border: "2px solid var(--teal, #69F7C3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, fontWeight: 600, color: "var(--purple-dark)" }}>{initials}</div>
+              <div>
+                <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--purple-dark)" }}>2026 · In review</div>
+                <div style={{ fontSize: 22, fontWeight: 600, color: "#1D102C" }}>{props.employeeName}</div>
+                <div style={{ fontSize: 13, color: "var(--muted)" }}>{props.employeeRole} · with {props.managerName}</div>
+              </div>
+            </div>
+            <span className="chip status-completed">Archived · read only</span>
+          </div>
         </div>
-      </div>
-      <div style={{ fontSize: 15, color: "var(--muted)", marginBottom: 32, marginLeft: 68 }}>
-        {archived ? "The record of this year's review conversation." : isEmp ? `Let's look back on your year, ${firstName}.` : `A look back on ${firstName}'s year — and a conversation about what's next.`}
-      </div>
+      ) : (
+        <div style={{ background: "linear-gradient(135deg,#1D102C 0%,#4E42AF 60%,#6252DB 100%)", borderRadius: 18, padding: "44px 40px", color: "#fff", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", top: -40, right: -30, width: 190, height: 190, borderRadius: "50%", background: "rgba(105,247,195,0.16)" }} />
+          <div style={{ position: "absolute", bottom: -70, right: 80, width: 130, height: 130, borderRadius: "50%", background: "rgba(105,247,195,0.08)" }} />
+          <div style={{ position: "absolute", top: 0, left: 0, width: 5, height: "100%", background: "#69F7C3" }} />
+          <div style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: "0.12em", color: "#69F7C3", marginBottom: 20 }}>2026 · In review</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
+            <div style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(255,255,255,0.12)", border: "2px solid #69F7C3", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 600 }}>{initials}</div>
+            <div>
+              <div style={{ fontSize: 30, fontWeight: 600, lineHeight: 1.1 }}>{props.employeeName}</div>
+              <div style={{ fontSize: 14, opacity: 0.82 }}>{props.employeeRole} · with {props.managerName}</div>
+            </div>
+          </div>
+          <div style={{ fontSize: 16, opacity: 0.92, maxWidth: 430, lineHeight: 1.5 }}>{heroLine}</div>
+        </div>
+      )}
 
-      {/* BEAT 1 — the journey */}
-      <Beat step="1" title="How the year unfolded">
-        <div style={{ fontSize: 13, color: "var(--muted)", marginBottom: 16 }}>
-          {props.quartersCompleted === 0 ? "The year is just beginning." : `${props.quartersCompleted} quarter${props.quartersCompleted === 1 ? "" : "s"} recorded so far.`}
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          {ALL_QUARTERS.map((q) => {
+      {/* JOURNEY */}
+      <div style={{ padding: "38px 6px 34px" }}>
+        <div style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--muted)", marginBottom: 22 }}>The year, quarter by quarter</div>
+        <div style={{ display: "flex", alignItems: "center" }}>
+          {ALL_QUARTERS.map((q, i) => {
             const row = byQuarter[q];
             const done = row && row.quarterlyScore !== null;
             return (
-              <div key={q} style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <div style={{ width: 10, height: 10, borderRadius: "50%", background: done ? "var(--purple)" : "var(--n30)", flexShrink: 0 }} />
-                {done ? (
-                  <div style={{ fontSize: 14 }}>
-                    <span style={{ fontWeight: 600 }}>{row!.label}</span>
-                    <span style={{ color: "var(--muted)" }}> — {row!.quarterlyScore!.toFixed(1)}, {RATING_LABEL[Math.round(row!.quarterlyScore!)] ?? ""}</span>
-                  </div>
-                ) : (
-                  <div style={{ fontSize: 14, color: "var(--n50)" }}>{q} — no review recorded</div>
-                )}
+              <div key={q} style={{ display: "contents" }}>
+                <div style={{ flex: 1, textAlign: "center" }}>
+                  <div style={{ width: done ? 14 : 11, height: done ? 14 : 11, borderRadius: "50%", background: done ? "var(--purple)" : "var(--n30)", margin: "0 auto 10px" }} />
+                  <div style={{ fontSize: 13, fontWeight: done ? 600 : 400, color: done ? "var(--text)" : "var(--n50)" }}>{q}</div>
+                  <div style={{ fontSize: 12, color: done ? "var(--muted)" : "var(--n40)" }}>{done ? row!.quarterlyScore!.toFixed(1) : "—"}</div>
+                </div>
+                {i < 3 ? <div style={{ flex: 1, height: 2, background: done && byQuarter[ALL_QUARTERS[i + 1]] ? "var(--purple)" : done ? "linear-gradient(90deg,var(--purple),var(--n30))" : "var(--n30)", marginBottom: 26 }} /> : null}
               </div>
             );
           })}
         </div>
-      </Beat>
-
-      {/* BEAT 2 — the two measures, as a talking point */}
-      <Beat step="2" title="Two measures of the year">
-        <div style={{ fontSize: 13, color: "var(--muted)", marginBottom: 18 }}>
-          Performance and values, each on its own terms. Worth talking through both — they're never blended into one.
+        <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 16, textAlign: "center" }}>
+          {props.quartersCompleted === 0 ? "The year is just beginning." : `Based on ${props.quartersCompleted} of 4 completed quarters.`}
         </div>
-        <div style={{ display: "flex", gap: 40, flexWrap: "wrap" }}>
-          <div>
-            <div style={{ fontSize: 36, fontWeight: 600, lineHeight: 1, color: "var(--purple-dark)" }}>{scoreDigit(props.annualPerformanceScore)}</div>
-            <div style={{ fontSize: 13, color: "var(--muted)", marginTop: 6 }}>{isEmp && !archived ? "what you delivered" : "performance"}</div>
+      </div>
+
+      {/* MEASURES */}
+      <div style={{ padding: "34px 40px", background: "var(--surface-alt, #F7F8FA)", borderRadius: 16 }}>
+        <div style={{ fontSize: 13, color: "var(--muted)", marginBottom: 26, textAlign: "center" }}>Two measures of the year, held side by side, never blended.</div>
+        <div style={{ display: "flex", justifyContent: "center", gap: 64, flexWrap: "wrap" }}>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: 40, fontWeight: 600, lineHeight: 1, color: "#1D102C" }}>{scoreDigit(props.annualPerformanceScore)}</div>
+            <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 8 }}>{isEmp && !archived ? "what you delivered" : "performance"}</div>
           </div>
-          <div>
-            <div style={{ fontSize: 36, fontWeight: 600, lineHeight: 1, color: "var(--purple-dark)" }}>{scoreDigit(props.valuesScore)}</div>
-            <div style={{ fontSize: 13, color: "var(--muted)", marginTop: 6 }}>{isEmp && !archived ? "how you showed up" : "values"}{!props.valuesComplete ? " (pending)" : ""}</div>
+          <div style={{ width: 1, background: "var(--border)" }} />
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: 40, fontWeight: 600, lineHeight: 1, color: "#1D102C" }}>{scoreDigit(props.valuesScore)}</div>
+            <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 8 }}>{isEmp && !archived ? "how you showed up" : "values"}{!props.valuesComplete ? " (pending)" : ""}</div>
           </div>
         </div>
-      </Beat>
+      </div>
 
-      {/* BEAT 3 — the employee's voice */}
-      <Beat step="3" title={isEmp && !archived ? "Your reflection" : `${firstName}'s reflection`}>
+      {/* REFLECTION HEART */}
+      <div style={{ padding: "44px 4px 30px" }}>
+        <SectionIcon />
         <Reflection
-          prompt="Looking back on your year, what stands out?"
+          prompt={isEmp ? "Looking back on your year, what stands out?" : `${firstName}'s reflection`}
           hint="Think about what you're proud of, what stretched you, and where you'd like to grow."
           value={empSelf} set={setEmpSelf} editable={isEmp && !empLocked}
           placeholder="Take a moment to reflect…"
         />
-      </Beat>
+      </div>
 
-      {/* BEAT 4 — the manager's voice + growth + forward */}
+      {/* MANAGER'S VOICE */}
       {showManagerSections ? (
         <>
-          <Beat step="4" title="Manager's assessment">
+          <div style={{ padding: "10px 4px 30px" }}>
             <Reflection
               prompt="How did this year go, in your words?"
               hint="Recognise the impact they had, and be honest about the whole picture."
               value={mgrAssess} set={setMgrAssess} editable={!isEmp && !mgrLocked}
               placeholder="Reflect on the year…"
             />
-          </Beat>
-          <Beat step="5" title="Areas for growth">
+          </div>
+          <div style={{ padding: "10px 4px 30px" }}>
             <Reflection
               prompt="Where is the biggest opportunity to grow?"
               hint="One or two areas that would make the most difference next year. Optional."
               value={growth} set={setGrowth} editable={!isEmp && !mgrLocked}
               placeholder="Optional…"
             />
-          </Beat>
-          <Beat step="6" title="Where next">
-            <Reflection
-              prompt="What does next year look like?"
-              hint="The goals and commitments you've agreed together for 2027."
-              value={devPlan} set={setDevPlan} editable={!isEmp && !mgrLocked}
-              placeholder="The plan you've agreed together…"
-            />
-          </Beat>
+          </div>
         </>
       ) : null}
 
+      {/* WHERE NEXT (teal close) */}
+      {showForward ? (
+        <div style={{ padding: "26px 28px", background: "var(--teal-subtle, #EBFDF6)", border: "0.5px solid #B6F2DC", borderRadius: 16, position: "relative", overflow: "hidden", marginTop: 4 }}>
+          <div style={{ position: "absolute", top: 0, left: 0, width: 4, height: "100%", background: "var(--teal, #69F7C3)" }} />
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+            <div style={{ width: 26, height: 26, borderRadius: 7, background: "var(--teal, #69F7C3)", display: "flex", alignItems: "center", justifyContent: "center", color: "#0A6B4A", fontSize: 14 }}>→</div>
+            <div style={{ fontSize: 16, fontWeight: 600, color: "#0A5C40" }}>Where next</div>
+          </div>
+          <div style={{ fontSize: 14, color: "#3A5A4E", marginBottom: (!isEmp && !mgrLocked) ? 14 : 0, maxWidth: 460, lineHeight: 1.5 }}>What does next year look like? The goals and commitments you've agreed together for 2027.</div>
+          {!isEmp && !mgrLocked ? (
+            <textarea value={devPlan} rows={4} disabled={busy} onChange={(e) => setDevPlan(e.target.value)} placeholder="The plan you've agreed together…"
+              style={{ width: "100%", lineHeight: 1.7, fontSize: 15, padding: 14, borderRadius: 10 }} />
+          ) : (
+            <div style={{ fontSize: 15, lineHeight: 1.75, color: devPlan ? "#1D3A2E" : "var(--muted)", whiteSpace: "pre-wrap" }}>{devPlan || "To be agreed."}</div>
+          )}
+        </div>
+      ) : null}
+
       {/* ACTIONS */}
-      <div style={{ marginTop: 8, paddingTop: 20, borderTop: "0.5px solid var(--border)", marginLeft: 46 }}>
+      <div style={{ marginTop: 24, paddingTop: 20, borderTop: "0.5px solid var(--border)" }}>
         {archived ? (
           <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-            <span className="chip status-completed">Archived {props.acknowledgedAt ? new Date(props.acknowledgedAt).toLocaleDateString() : ""} · read-only</span>
+            <span className="chip status-completed">Archived {props.acknowledgedAt ? new Date(props.acknowledgedAt).toLocaleDateString() : ""} · read only</span>
             {props.canReopenArchived ? (
               <button className="btn secondary" disabled={busy} onClick={() => handle(() => reopenArchivedYearEndAction(props.reviewId, "HR reopened archived summary"), "Reopened.")}>HR: reopen</button>
             ) : null}
@@ -210,7 +240,7 @@ export function YearEndForm(props: Props) {
           !empLocked ? (
             <div style={{ display: "flex", gap: 10 }}>
               <button className="btn secondary" disabled={busy} onClick={() => handle(() => saveEmployeeYearEndDraftAction(props.reviewId, empSelf), "Draft saved.")}>Save draft</button>
-              <button disabled={busy} onClick={() => handle(() => submitYearEndWithDraftAction(props.reviewId, empSelf), "Share with your manager.")}>Share with manager</button>
+              <button disabled={busy} onClick={() => handle(() => submitYearEndWithDraftAction(props.reviewId, empSelf), "Shared with your manager.")}>Share with manager</button>
             </div>
           ) : props.status === "COMPLETE" ? (
             props.acknowledgedAt ? <span className="chip status-completed">Acknowledged</span> :
