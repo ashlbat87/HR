@@ -135,9 +135,6 @@ async function main() {
   await prisma.reviewCycle.create({
     data: { type: "ANNUAL_VALUES", label: "Values 2026", isOpen: true },
   });
-await prisma.reviewCycle.create({
-    data: { type: "ANNUAL_VALUES", label: "Values 2026", isOpen: true },
-  });
   await prisma.reviewCycle.create({
     data: { type: "YEAR_END", label: "Year-End 2026", isOpen: true },
   });
