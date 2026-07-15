@@ -1,34 +1,38 @@
-## [0.5] — Stage 4 / Release v0.5: Year-End Summary (planning approved; implementation starting)
+## [0.5] — Stage 4 / Release v0.5: Year-End Summary (COMPLETE)
 
-Planning approved with HR decisions incorporated. Implementation beginning; this
-entry completes when built and accepted.
+Year-End Summary delivered and verified. A per-employee YEAR_END review assembles the
+year's quarterly and values results and adds the year-end narrative and outcome, per
+the Excel master template.
 
-Scope: a per-employee YEAR_END review assembling the four quarterly reviews and the
-annual values review, with an Annual Performance Score (average of completed quarterly
-manager Q Scores), the values score shown separately (never blended), four dedicated
-narrative fields, a Performance Journey visual, electronic acknowledgement, and a new
-Archived terminal state.
+Delivered: quarter-by-quarter journey; Annual Performance Score (mean of completed
+quarterly Q Scores, numeric only, "N of 4" basis, handling 1 to 4 quarters); the two
+year-end scores side by side (performance and values), never blended; four dedicated
+narrative fields (employee self-assessment, manager assessment, areas for growth,
+development plan); electronic acknowledgement moving the review to a read-only ARCHIVED
+state with HR-only reopen; and a flagship conversation-guided screen with a
+state-dependent voice and confident purple-to-teal branding.
 
-Approved HR decisions:
-1. Mandatory: Employee Overall Self-Assessment (employee); Manager Overall Assessment
-   and Development Plan (manager). Optional: Areas for Growth.
-2. The Annual Values Review must be complete before the Year-End Summary can be
-   completed (it may be prepared beforehand).
-3. Four explicit dedicated narrative fields (no reuse of generic columns).
-4. One YEAR_END review per employee per annual cycle, HR-created.
-5. Annual Performance Score is numeric only for v0.5 — no descriptive band/label shown
-   or stored; numeric score is the source of truth; labels are a future policy decision
-   introducible later with no DB or calculation change.
+Also delivered: a CEO and full reporting hierarchy (every employee except the CEO now
+has a manager and receives reviews, closing a gap where department leads received
+none), and a restructured reviews list page (personal reviews first, then a separate
+HR administration section for generating and browsing all reviews).
 
-Additional: (a) Archived terminal state — after manager completion and employee
-acknowledgement the review becomes read-only Archived; only HR may reopen. (b) A small
-Performance Journey visual showing Q1–Q4 progression and the annual score, using
-existing design-system components.
+Decisions (approved): mandatory narrative (employee self-assessment; manager assessment
++ development plan; areas for growth optional); values review must be complete before
+year-end completion; four dedicated narrative fields; one HR-created YEAR_END review
+per annual cycle; Annual Performance Score numeric only with no label shown or stored
+(labels a future policy decision introducible with no DB or calculation change). Plus
+an ARCHIVED terminal state and a Performance Journey visual.
 
-Architecture: reuses the shared workflow, state machine, timeline, audit,
-acknowledgement, permissions, rating-label mapping, and the v0.4 two-score component.
-New: assembly query, four narrative fields, Archived state, Performance Journey visual.
-Stage 2 and Stage 3 regression harnesses are mandatory gates.
+Schema (additive): Review gains annualPerformanceScore and four narrative fields;
+ReviewStatus gains ARCHIVED; ReviewEventType gains ARCHIVED.
+
+Verification: Stage 4 acceptance harness 9/9; Stage 3 regression 6/6; Stage 2
+regression 6/6; typecheck clean; manual walk-through across employee, manager, and
+archived states. Prototype release; fictional data only.
+
+Deferred: employee start date for true N/A on mid-year joiners (backlog); descriptive
+rating labels for the annual score (future policy); quarterly consistency follow-up.
 
 # Changelog
 

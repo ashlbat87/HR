@@ -9,7 +9,7 @@ narrative lives in docs/PROJECT_JOURNAL.md; approval detail in docs/APPROVALS.md
 | Stage 2 | v0.2 | Quarterly Reviews | Complete, approved (conditional on Stage 1 UI spot-check) |
 | Stage 3 (design) | v0.3 | Product Experience & Design System | Complete, approved |
 | Stage 3 | v0.4 | Annual Values Review | Complete, approved |
-| Stage 4 | v0.5 | Year-End Summary | Planning approved; in build |
+| Stage 4 | v0.5 | Year-End Summary | Complete, verified (pending approval) |
 | Stage 5 | v0.6 | HR Dashboard | Not started (blocked on v0.5 approval) |
 | — | v0.7 | Reporting, Moderation & Calibration | Planned |
 | — | v0.8 | Notifications & Reminders (incl. deadline locking) | Planned |
