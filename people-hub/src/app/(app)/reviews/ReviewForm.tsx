@@ -16,6 +16,12 @@ import {
 const ITEMS = ["IMPACT", "QUALITY", "DELIVERY"] as const;
 type Item = (typeof ITEMS)[number];
 
+const LABELS: Record<Item, string> = {
+  IMPACT: "Impact",
+  QUALITY: "Quality",
+  DELIVERY: "Delivery Reliability",
+};
+
 interface ExistingRating {
   item: string;
   score: number;
@@ -44,6 +50,9 @@ function ratingMap(rs: ExistingRating[]) {
 export function ReviewForm(props: Props) {
   const isEmployee = props.mode === "employee";
   const initial = ratingMap(isEmployee ? props.employeeRatings : props.managerRatings);
+  const employeeMap = ratingMap(props.employeeRatings);
+  const managerMap = ratingMap(props.managerRatings);
+  const showManagerToEmployee = isEmployee && ["COMPLETE", "CLOSED"].includes(props.status);
 
   const [scores, setScores] = useState<Record<string, number>>(() => {
     const s: Record<string, number> = {};
@@ -100,7 +109,7 @@ export function ReviewForm(props: Props) {
     }
   }
 
-async function submit() {
+  async function submit() {
     await handle(
       () =>
         submitWithDraftAction(props.reviewId, buildRatings(), {
@@ -112,53 +121,73 @@ async function submit() {
     );
   }
 
- async function complete() {
+  async function complete() {
     await handle(() => completeWithDraftAction(props.reviewId, buildRatings(), dev), "Review completed.");
   }
 
   return (
     <div>
-      {error ? <div className="chip" style={{ background: "#f8d7da", color: "#842029", display: "block", marginBottom: 12 }}>{error}</div> : null}
-      {notice ? <div className="chip" style={{ background: "#d1e7dd", color: "#0f5132", display: "block", marginBottom: 12 }}>{notice}</div> : null}
+      {error ? <div className="chip status-overdue" style={{ display: "block", marginBottom: 12 }}>{error}</div> : null}
+      {notice ? <div className="chip status-completed" style={{ display: "block", marginBottom: 12 }}>{notice}</div> : null}
 
-      <table>
-        <thead>
-          <tr>
-            <th>Item</th>
-            <th>Score (1 to 5)</th>
-            <th>Comment</th>
-          </tr>
-        </thead>
-        <tbody>
-          {ITEMS.map((it) => (
-            <tr key={it}>
-              <td><strong>{it.charAt(0) + it.slice(1).toLowerCase()}</strong></td>
-              <td>
-                <select
-                  value={scores[it]}
-                  disabled={locked || busy}
-                  onChange={(ev) => setScores({ ...scores, [it]: Number(ev.target.value) })}
-                >
-                  <option value={0}>—</option>
-                  {[1, 2, 3, 4, 5].map((n) => (
-                    <option key={n} value={n}>{n}</option>
-                  ))}
-                </select>
-              </td>
-              <td>
-                <input
-                  type="text"
-                  value={comments[it]}
-                  disabled={locked || busy}
-                  placeholder="Optional"
-                  onChange={(ev) => setComments({ ...comments, [it]: ev.target.value })}
-                  style={{ width: "100%" }}
-                />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {ITEMS.map((it) => {
+        const currentScore = scores[it];
+        const empRating = employeeMap[it];
+        const diff = !isEmployee && empRating && currentScore && empRating.score !== currentScore;
+        return (
+          <div className="card" key={it}>
+            <div style={{ fontWeight: 600, marginBottom: 4 }}>{LABELS[it]}</div>
+            {!isEmployee && empRating ? (
+              <div className="muted" style={{ fontSize: 13, marginBottom: 8 }}>
+                Employee self-score: <strong>{empRating.score || "—"}</strong>
+                {empRating.comment ? ` · "${empRating.comment}"` : ""}
+                {diff ? <span className="chip status-awaiting" style={{ marginLeft: 8 }}>Differs from yours</span> : null}
+              </div>
+            ) : null}
+            <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
+              {[1, 2, 3, 4, 5].map((n) => {
+                const selected = currentScore === n;
+                return (
+                  <button
+                    key={n}
+                    type="button"
+                    disabled={locked || busy}
+                    onClick={() => setScores({ ...scores, [it]: n })}
+                    className={selected ? "" : "secondary"}
+                    style={{
+                      flex: 1,
+                      ...(selected ? { background: "var(--purple)", color: "#fff", opacity: 1, borderColor: "var(--purple)" } : {}),
+                      ...(locked && !selected ? { opacity: 0.55 } : {}),
+                    }}
+                  >
+                    {n}
+                  </button>
+                );
+              })}
+            </div>
+            {showManagerToEmployee && managerMap[it] ? (
+              <div className="card" style={{ background: "var(--purple-subtle)", border: "none", marginBottom: 8, padding: "10px 12px" }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: "var(--purple-dark)", marginBottom: 2 }}>
+                  Manager rating: {managerMap[it].score || "—"}
+                </div>
+                {managerMap[it].comment ? (
+                  <div className="muted" style={{ fontSize: 13 }}>{managerMap[it].comment}</div>
+                ) : (
+                  <div className="muted" style={{ fontSize: 13 }}>No comment.</div>
+                )}
+              </div>
+            ) : null}
+            <input
+              type="text"
+              value={comments[it]}
+              disabled={locked || busy}
+              placeholder="Comment (optional)"
+              onChange={(ev) => setComments({ ...comments, [it]: ev.target.value })}
+              style={{ width: "100%" }}
+            />
+          </div>
+        );
+      })}
 
       {isEmployee ? (
         <>
@@ -181,6 +210,13 @@ async function submit() {
           <textarea value={dev} disabled={locked || busy} onChange={(e) => setDev(e.target.value)} rows={2} />
         </label>
       )}
+
+      {showManagerToEmployee && props.developmentAction ? (
+        <div className="card" style={{ background: "var(--purple-subtle)", border: "none" }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: "var(--purple-dark)", marginBottom: 2 }}>Development action (agreed)</div>
+          <div className="muted" style={{ fontSize: 13 }}>{props.developmentAction}</div>
+        </div>
+      ) : null}
 
       {props.quarterlyScore !== null ? (
         <p className="muted">Quarterly score: <strong>{props.quarterlyScore.toFixed(1)}</strong></p>
