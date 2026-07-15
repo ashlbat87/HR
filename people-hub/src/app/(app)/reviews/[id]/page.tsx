@@ -104,7 +104,7 @@ export default async function ReviewDetailPage({
           canReopenArchived={isHR(user)}
           quarters={(yearEnd?.quarters ?? []).map((q) => ({ label: q.cycle.label, quarterlyScore: q.quarterlyScore }))}
           quartersCompleted={yearEnd?.quartersCompleted ?? 0}
-          annualPerformanceScore={fresh?.annualPerformanceScore ?? review.annualPerformanceScore}
+          annualPerformanceScore={fresh?.annualPerformanceScore ?? review.annualPerformanceScore ?? yearEnd?.annualPerformanceScore ?? null}
           valuesScore={yearEnd?.valuesScore ?? null}
           valuesComplete={yearEnd?.valuesComplete ?? false}
           employeeOverallAssessment={review.employeeOverallAssessment ?? ""}

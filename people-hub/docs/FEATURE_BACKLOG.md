@@ -22,3 +22,25 @@ Cross-cutting: enforcement lives in the shared workflow guards, so it applies to
 BOTH quarterly and annual values reviews. Both acceptance harnesses are its
 regression gate. Uses the existing ReviewCycle.employeeDeadline / managerDeadline
 fields.
+
+## Employee start date / applicable quarters — BACKLOG (surfaced during v0.5)
+
+Need: the year-end summary should distinguish quarters that did not apply to an
+employee (e.g. a mid-year joiner has no Q1) from quarters that applied but have no
+completed review. Doing this correctly needs the system to know which quarters
+applied — i.e. an employee start/join date (or an explicit applicable-quarters
+record).
+
+Decisions already made (v0.5): show the full four-quarter frame; mark
+pre-joining quarters as N/A; calculate the annual performance score from
+applicable/completed quarters only (denominator is not hardcoded to 4).
+
+Interim (v0.5, no new data): the annual score already averages only the completed
+quarterly reviews that exist (so the denominator decision holds). The display shows
+four quarters, scores the completed ones, and marks the rest neutrally as "no review
+recorded" — it does NOT assert N/A vs not-yet, because without a join date the system
+cannot tell them apart. True N/A labelling is deferred to this backlog item.
+
+When built: add an employee start date (additive), derive applicable quarters from it,
+and update the year-end display to show N/A for pre-joining quarters. Also useful for
+pro-rating, reporting, and onboarding views later.
