@@ -79,8 +79,8 @@ export function YearEndForm(props: Props) {
     <div>
       {!archived ? (
         <>
-          <div style={{ fontSize: 22, fontWeight: 600, lineHeight: 1.3, marginBottom: 8, maxWidth: 460 }}>{prompt}</div>
-          <div style={{ fontSize: 14, color: "var(--muted)", marginBottom: 20, maxWidth: 460 }}>{hint}</div>
+        <div style={{ fontSize: 22, fontWeight: 600, lineHeight: 1.3, marginBottom: 8, maxWidth: 460 }}>{prompt}</div>
+          <div style={{ fontSize: 14, color: "var(--muted)", marginBottom: 20 }}>{hint}</div>
         </>
       ) : null}
       {editable ? (
@@ -99,7 +99,7 @@ export function YearEndForm(props: Props) {
   );
 
   return (
-    <div style={{ maxWidth: 680 }}>
+    <div style={{ maxWidth: 680, margin: "0 auto" }}>
       {error ? <div className="chip status-overdue" style={{ display: "block", marginBottom: 16 }}>{error}</div> : null}
       {notice ? <div className="chip status-completed" style={{ display: "block", marginBottom: 16 }}>{notice}</div> : null}
 
@@ -165,13 +165,15 @@ export function YearEndForm(props: Props) {
         <div style={{ fontSize: 13, color: "var(--muted)", marginBottom: 26, textAlign: "center" }}>Two measures of the year, held side by side, never blended.</div>
         <div style={{ display: "flex", justifyContent: "center", gap: 64, flexWrap: "wrap" }}>
           <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "var(--purple-dark)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>Performance</div>
             <div style={{ fontSize: 40, fontWeight: 600, lineHeight: 1, color: "#1D102C" }}>{scoreDigit(props.annualPerformanceScore)}</div>
-            <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 8 }}>{isEmp && !archived ? "what you delivered" : "performance"}</div>
+            <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 8 }}>{isEmp && !archived ? "what you delivered" : "annual"}</div>
           </div>
           <div style={{ width: 1, background: "var(--border)" }} />
           <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "var(--purple-dark)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>Values{!props.valuesComplete ? " (pending)" : ""}</div>
             <div style={{ fontSize: 40, fontWeight: 600, lineHeight: 1, color: "#1D102C" }}>{scoreDigit(props.valuesScore)}</div>
-            <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 8 }}>{isEmp && !archived ? "how you showed up" : "values"}{!props.valuesComplete ? " (pending)" : ""}</div>
+            <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 8 }}>{isEmp && !archived ? "how you showed up" : "assessment"}</div>
           </div>
         </div>
       </div>
