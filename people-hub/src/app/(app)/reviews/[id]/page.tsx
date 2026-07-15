@@ -100,7 +100,7 @@ export default async function ReviewDetailPage({
           reviewId={review.id}
           mode={mode}
           status={status}
-          isEmployee={isEmployee}
+          isEmployee={isEmployee} employeeName={review.employee.displayName}
           canReopenArchived={isHR(user)}
           quarters={(yearEnd?.quarters ?? []).map((q) => ({ label: q.cycle.label, quarterlyScore: q.quarterlyScore }))}
           quartersCompleted={yearEnd?.quartersCompleted ?? 0}
