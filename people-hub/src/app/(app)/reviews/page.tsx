@@ -65,7 +65,12 @@ export default async function MyReviewsPage() {
   const openCycles = isHR(user)
     ? await prisma.reviewCycle.findMany({ where: { isOpen: true }, orderBy: { createdAt: "desc" } })
     : [];
-
+const allReviews = isHR(user)
+    ? await prisma.review.findMany({
+        include: { cycle: true, employee: true },
+        orderBy: [{ cycle: { createdAt: "desc" } }, { employee: { displayName: "asc" } }],
+      })
+    : [];
   return (
     <div>
       <h1>My Reviews</h1>
@@ -93,6 +98,17 @@ export default async function MyReviewsPage() {
             <div className="empty">No reviews for your team yet.</div>
           ) : (
             <div className="card">{teamReviews.map((r) => <ReviewRow key={r.id} r={r} />)}</div>
+          )}
+        </>
+      ) : null}
+      {isHR(user) ? (
+        <>
+          <h2>All reviews</h2>
+          <p className="muted" style={{ marginTop: 0 }}>HR view: every review across the organisation. Open any to view, or to reopen an archived summary.</p>
+          {allReviews.length === 0 ? (
+            <div className="empty">No reviews yet.</div>
+          ) : (
+            <div className="card">{allReviews.map((r) => <ReviewRow key={r.id} r={r} />)}</div>
           )}
         </>
       ) : null}
