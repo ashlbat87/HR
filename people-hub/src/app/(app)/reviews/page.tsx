@@ -1,7 +1,5 @@
-// My Reviews — lists the person's own reviews and, for managers, their team's.
-// HR gets controls to generate reviews for open cycles (quarterly and values).
-// Reviews of both types (QUARTERLY, ANNUAL_VALUES) are shown, labelled by type.
-
+// Reviews — a person's own reviews and (for managers) their team's, plus, for HR,
+// an administration section: generate reviews for open cycles and browse all reviews.
 import { getCurrentUser } from "@/core/auth";
 import { requireSignedIn, isHR, isManager } from "@/core/access";
 import { prisma } from "@/shared/lib/prisma";
@@ -15,6 +13,7 @@ const STATUS_LABEL: Record<string, string> = {
   AWAITING_MANAGER: "Awaiting manager",
   COMPLETE: "Complete",
   REOPENED: "Reopened",
+  ARCHIVED: "Archived",
 };
 const STATUS_CLASS: Record<string, string> = {
   NOT_STARTED: "status-outstanding",
@@ -23,6 +22,7 @@ const STATUS_CLASS: Record<string, string> = {
   AWAITING_MANAGER: "status-awaiting",
   COMPLETE: "status-completed",
   REOPENED: "status-reopened",
+  ARCHIVED: "status-completed",
 };
 const TYPE_LABEL: Record<string, string> = {
   QUARTERLY: "Quarterly review",
@@ -45,45 +45,41 @@ function ReviewRow({ r }: { r: any }) {
   );
 }
 
-export default async function MyReviewsPage() {
+export default async function ReviewsPage() {
   const user = requireSignedIn(await getCurrentUser());
+  const hr = isHR(user);
+  const manager = isManager(user);
 
   const myReviews = await prisma.review.findMany({
     where: { employeeId: user.employeeId },
     include: { cycle: true, employee: true },
     orderBy: { createdAt: "desc" },
   });
-
-  const teamReviews = isManager(user)
+  const teamReviews = manager
     ? await prisma.review.findMany({
         where: { managerId: user.employeeId },
         include: { cycle: true, employee: true },
         orderBy: [{ cycle: { createdAt: "desc" } }, { employee: { displayName: "asc" } }],
       })
     : [];
-
-  const openCycles = isHR(user)
+  const openCycles = hr
     ? await prisma.reviewCycle.findMany({ where: { isOpen: true }, orderBy: { createdAt: "desc" } })
     : [];
-const allReviews = isHR(user)
+  const allReviews = hr
     ? await prisma.review.findMany({
         include: { cycle: true, employee: true },
         orderBy: [{ cycle: { createdAt: "desc" } }, { employee: { displayName: "asc" } }],
       })
     : [];
+
   return (
     <div>
-      <h1>My Reviews</h1>
+      <h1>Reviews</h1>
+      <p className="muted" style={{ marginTop: 0, marginBottom: 28 }}>
+        {hr ? "Your own reviews, and organisation-wide review administration." : manager ? "Your reviews and your team's." : "Your performance and values reviews."}
+      </p>
 
-      {isHR(user) && openCycles.length > 0 ? (
-        <>
-          <h2>HR: generate reviews</h2>
-          {openCycles.map((c) => (
-            <CreateCycleReviews key={c.id} cycleId={c.id} label={c.label} type={c.type} />
-          ))}
-        </>
-      ) : null}
-
+      {/* PERSONAL */}
       <h2>Your reviews</h2>
       {myReviews.length === 0 ? (
         <div className="empty">You have no reviews yet.</div>
@@ -91,9 +87,9 @@ const allReviews = isHR(user)
         <div className="card">{myReviews.map((r) => <ReviewRow key={r.id} r={r} />)}</div>
       )}
 
-      {isManager(user) ? (
+      {manager ? (
         <>
-          <h2>Your team&apos;s reviews</h2>
+          <h2 style={{ marginTop: 32 }}>Your team&apos;s reviews</h2>
           {teamReviews.length === 0 ? (
             <div className="empty">No reviews for your team yet.</div>
           ) : (
@@ -101,16 +97,34 @@ const allReviews = isHR(user)
           )}
         </>
       ) : null}
-      {isHR(user) ? (
-        <>
-          <h2>All reviews</h2>
-          <p className="muted" style={{ marginTop: 0 }}>HR view: every review across the organisation. Open any to view, or to reopen an archived summary.</p>
+
+      {/* HR ADMINISTRATION */}
+      {hr ? (
+        <div style={{ marginTop: 44, paddingTop: 8, borderTop: "0.5px solid var(--border)" }}>
+          <h2 style={{ marginTop: 24 }}>HR administration</h2>
+          <p className="muted" style={{ marginTop: 0, marginBottom: 20 }}>
+            Generate reviews for open cycles, and browse every review across the organisation.
+          </p>
+
+          {openCycles.length > 0 ? (
+            <>
+              <h3 style={{ fontSize: 15 }}>Generate reviews</h3>
+              {openCycles.map((c) => (
+                <CreateCycleReviews key={c.id} cycleId={c.id} label={c.label} type={c.type} />
+              ))}
+            </>
+          ) : null}
+
+          <h3 style={{ fontSize: 15, marginTop: 28 }}>All reviews</h3>
+          <p className="muted" style={{ marginTop: 0, marginBottom: 12, fontSize: 13 }}>
+            Open any review to view it, or to reopen an archived year-end summary.
+          </p>
           {allReviews.length === 0 ? (
             <div className="empty">No reviews yet.</div>
           ) : (
             <div className="card">{allReviews.map((r) => <ReviewRow key={r.id} r={r} />)}</div>
           )}
-        </>
+        </div>
       ) : null}
     </div>
   );

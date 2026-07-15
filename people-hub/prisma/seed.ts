@@ -16,12 +16,13 @@ type P = {
 };
 
 const PEOPLE: P[] = [
-  { email: "wafa@example.test", name: "Wafa Al-Sayed", role: "People Ops Lead", dept: "People", guide: "SUPPORT_FUNCTIONS", appRoles: ["HR_ADMIN"] },
+  { email: "ceo@example.test", name: "Sara Haddad", role: "Chief Executive Officer", dept: "Executive", guide: "SUPPORT_FUNCTIONS" },
+  { email: "wafa@example.test", name: "Wafa Al-Sayed", role: "People Ops Lead", dept: "People", guide: "SUPPORT_FUNCTIONS", appRoles: ["HR_ADMIN"], manager: "ceo@example.test" },
   { email: "hr.partner@example.test", name: "Dana Fischer", role: "HR Business Partner", dept: "People", guide: "SUPPORT_FUNCTIONS", manager: "wafa@example.test", appRoles: ["HR"] },
 
-  { email: "a.khan@example.test", name: "Amir Khan", role: "Head of Product", dept: "Product", guide: "PRODUCT" },
-  { email: "s.park@example.test", name: "Soo-jin Park", role: "Engineering Manager", dept: "Engineering", guide: "ENGINEERING" },
-  { email: "r.mansour@example.test", name: "Rana Mansour", role: "Commercial Lead", dept: "Commercial", guide: "SALES_COMMERCIAL" },
+  { email: "a.khan@example.test", name: "Amir Khan", role: "Head of Product", dept: "Product", guide: "PRODUCT" , manager: "ceo@example.test" },
+  { email: "s.park@example.test", name: "Soo-jin Park", role: "Engineering Manager", dept: "Engineering", guide: "ENGINEERING" , manager: "ceo@example.test" },
+  { email: "r.mansour@example.test", name: "Rana Mansour", role: "Commercial Lead", dept: "Commercial", guide: "SALES_COMMERCIAL" , manager: "ceo@example.test" },
 
   { email: "l.ito@example.test", name: "Leo Ito", role: "Senior PM", dept: "Product", guide: "PRODUCT", manager: "a.khan@example.test" },
   { email: "n.haddad@example.test", name: "Nour Haddad", role: "Account Executive", dept: "Commercial", guide: "SALES_COMMERCIAL", manager: "r.mansour@example.test" },
