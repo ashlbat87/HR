@@ -58,6 +58,8 @@ export function ValuesReviewForm(props: Props) {
   const isEmployeeForm = props.mode === "employee";
   const initial = ratingMap(isEmployeeForm ? props.employeeRatings : props.managerRatings);
   const employeeMap = ratingMap(props.employeeRatings);
+const managerMap = ratingMap(props.managerRatings);
+  const showManagerToEmployee = isEmployeeForm && ["COMPLETE", "CLOSED", "REOPENED"].includes(props.status);
 
   const [scores, setScores] = useState<Record<string, number>>(() => {
     const s: Record<string, number> = {};
@@ -158,6 +160,18 @@ export function ValuesReviewForm(props: Props) {
               })}
             </div>
             {shownAnchor ? <div className="muted" style={{ fontSize: 12, marginBottom: 8 }}>{shownAnchor}</div> : null}
+            {showManagerToEmployee && managerMap[it] ? (
+              <div className="card" style={{ background: "var(--purple-subtle)", border: "none", marginBottom: 8, padding: "10px 12px" }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: "var(--purple-dark)", marginBottom: 2 }}>
+                  Manager rating: {managerMap[it].score || "—"}
+                </div>
+                {managerMap[it].comment ? (
+                  <div className="muted" style={{ fontSize: 13 }}>{managerMap[it].comment}</div>
+                ) : (
+                  <div className="muted" style={{ fontSize: 13 }}>No comment.</div>
+                )}
+              </div>
+            ) : null}
             <input
               type="text"
               value={comments[it]}
@@ -177,8 +191,36 @@ export function ValuesReviewForm(props: Props) {
         </label>
       ) : null}
 
-      {props.valuesScore !== null ? (
-        <p className="muted">Overall values rating: <strong>{props.valuesScore.toFixed(1)}</strong> <span style={{ fontSize: 12 }}>(from manager scores; kept separate from performance)</span></p>
+      {props.valuesScore !== null && ["COMPLETE", "CLOSED"].includes(props.status) ? (
+        (() => {
+          const emp = props.employeeRatings.filter((r) => r.score > 0);
+          const selfAvg = emp.length ? emp.reduce((s, r) => s + r.score, 0) / emp.length : null;
+          const diff = selfAvg !== null ? Math.abs(props.valuesScore! - selfAvg) : null;
+          return (
+            <div className="card">
+              <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 12 }}>Overall values summary</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 28, flexWrap: "wrap" }}>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                  <span style={{ fontSize: 24, fontWeight: 600 }}>{props.valuesScore!.toFixed(1)}</span>
+                  <span className="muted" style={{ fontSize: 12 }}>Manager</span>
+                  <span style={{ fontSize: 10, fontWeight: 600, color: "var(--purple-dark)", background: "var(--purple-subtle)", borderRadius: 4, padding: "1px 6px", textTransform: "uppercase", letterSpacing: "0.03em" }}>Official</span>
+                </div>
+                <div style={{ width: 1, height: 28, background: "var(--border)" }} />
+                <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                  <span style={{ fontSize: 24, fontWeight: 600, color: "var(--muted)" }}>{selfAvg !== null ? selfAvg.toFixed(1) : "—"}</span>
+                  <span className="muted" style={{ fontSize: 12 }}>Self-assessment</span>
+                  <span style={{ fontSize: 10, fontWeight: 600, color: "var(--muted)", background: "var(--n20)", borderRadius: 4, padding: "1px 6px", textTransform: "uppercase", letterSpacing: "0.03em" }}>For comparison</span>
+                </div>
+                {diff !== null ? (
+                  <div style={{ marginLeft: "auto", fontSize: 12 }} className="muted">Difference {diff.toFixed(1)}</div>
+                ) : null}
+              </div>
+              <div className="muted" style={{ fontSize: 12, marginTop: 10 }}>
+                Manager rating is the official values score, from manager scores only, kept separate from performance. The two scores are never blended.
+              </div>
+            </div>
+          );
+        })()
       ) : null}
 
       {!locked ? (
