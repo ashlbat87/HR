@@ -436,3 +436,186 @@ export async function acknowledgeReview(reviewId: string, actor: AuthUser): Prom
 
 // Shared reopen/close/return/managerOpen already work for any review type
 // (they are type-agnostic), so annual values reviews reuse them directly.
+
+// =============================================================================
+// STAGE 4 / v0.5 — Year-End Summary. Reuses the shared state machine, timeline,
+// audit, permissions, and acknowledgement. New: assembly of quarterly + values
+// data, the four narrative fields, values-complete gate, and archive-on-acknowledge.
+// =============================================================================
+
+// Assemble an employee's completed quarterly reviews and compute the annual
+// performance score (average of their quarterlyScore values). Numeric only — no
+// label is computed or stored (Decision 5). Returns the score, the contributing
+// quarter count, and the per-quarter rows for display.
+export async function assembleYearEndData(employeeId: string) {
+  const quarters = await prisma.review.findMany({
+    where: { employeeId, type: "QUARTERLY", status: { in: ["COMPLETE", "ARCHIVED"] } },
+    include: { cycle: true, ratings: true },
+    orderBy: { cycle: { label: "asc" } },
+  });
+  const scores = quarters
+    .map((q) => q.quarterlyScore)
+    .filter((s): s is number => s !== null);
+  const annualPerformanceScore =
+    scores.length > 0 ? Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 10) / 10 : null;
+
+  // The completed annual values review for this employee (official values score).
+  const valuesReview = await prisma.review.findFirst({
+    where: { employeeId, type: "ANNUAL_VALUES" },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return {
+    quarters,
+    quartersCompleted: scores.length,
+    annualPerformanceScore,
+    valuesReview,
+    valuesScore: valuesReview?.valuesScore ?? null,
+    valuesComplete: valuesReview?.status === "COMPLETE" || valuesReview?.status === "ARCHIVED",
+  };
+}
+
+// Create YEAR_END reviews for every eligible employee in an open YEAR_END cycle.
+// Idempotent. HR only (enforced by caller). One per employee per cycle (Decision 4).
+export async function createYearEndReviewsForCycle(
+  cycleId: string,
+  actor: AuthUser
+): Promise<{ created: number; skipped: number }> {
+  const cycle = await prisma.reviewCycle.findUnique({ where: { id: cycleId } });
+  if (!cycle) throw new WorkflowError("Cycle not found.");
+  if (cycle.type !== "YEAR_END") throw new WorkflowError("This cycle is not a year-end cycle.");
+
+  const employees = await prisma.employee.findMany({
+    where: { managerId: { not: null }, employmentStatus: "ACTIVE" },
+    select: { id: true, managerId: true },
+  });
+
+  let created = 0;
+  let skipped = 0;
+  for (const emp of employees) {
+    const existing = await prisma.review.findFirst({
+      where: { cycleId, employeeId: emp.id, type: "YEAR_END" },
+    });
+    if (existing) {
+      skipped++;
+      continue;
+    }
+    const review = await prisma.review.create({
+      data: { cycleId, type: "YEAR_END", employeeId: emp.id, managerId: emp.managerId!, status: "NOT_STARTED" },
+    });
+    await recordEvent(review.id, "CREATED", actor);
+    created++;
+  }
+  await recordAudit({
+    actorEmail: actor.email,
+    action: "review.create_batch",
+    entityType: "ReviewCycle",
+    entityId: cycleId,
+    detail: `year-end created=${created}, skipped=${skipped}`,
+  });
+  return { created, skipped };
+}
+
+// Employee saves their year-end self-assessment draft.
+export async function saveEmployeeYearEndDraft(
+  reviewId: string,
+  actor: AuthUser,
+  draft: { employeeOverallAssessment?: string }
+): Promise<void> {
+  const review = await getReviewOrThrow(reviewId);
+  if (review.type !== "YEAR_END") throw new WorkflowError("Not a year-end summary.");
+  if (!isReviewEmployee(actor, review)) throw new WorkflowError("Only the employee can save this draft.");
+  if (!["NOT_STARTED", "IN_PROGRESS"].includes(review.status))
+    throw new WorkflowError("Draft can only be saved while in progress.");
+  await prisma.review.update({
+    where: { id: reviewId },
+    data: { status: "IN_PROGRESS", employeeOverallAssessment: draft.employeeOverallAssessment ?? undefined },
+  });
+  await recordEvent(reviewId, "DRAFT_SAVED", actor);
+}
+
+// Employee submits: requires the Employee Overall Self-Assessment (Decision 1).
+export async function submitYearEndReview(reviewId: string, actor: AuthUser): Promise<void> {
+  const review = await getReviewOrThrow(reviewId);
+  if (review.type !== "YEAR_END") throw new WorkflowError("Not a year-end summary.");
+  if (!isReviewEmployee(actor, review)) throw new WorkflowError("Only the employee can submit.");
+  assertTransition(review.status, "SUBMITTED");
+  if (!review.employeeOverallAssessment || !review.employeeOverallAssessment.trim())
+    throw new WorkflowError("Please complete your overall self-assessment before submitting.");
+  await prisma.review.update({ where: { id: reviewId }, data: { status: "SUBMITTED" } });
+  await recordEventAndMaybeAudit(reviewId, "SUBMITTED", actor);
+}
+
+// Manager saves their year-end draft (assessment, areas for growth, development plan).
+export async function saveManagerYearEndDraft(
+  reviewId: string,
+  actor: AuthUser,
+  draft: { managerOverallAssessment?: string; areasForGrowth?: string; developmentPlan?: string }
+): Promise<void> {
+  const review = await getReviewOrThrow(reviewId);
+  if (review.type !== "YEAR_END") throw new WorkflowError("Not a year-end summary.");
+  if (!isReviewManager(actor, review)) throw new WorkflowError("Only the manager can save manager sections.");
+  if (!["AWAITING_MANAGER", "REOPENED"].includes(review.status))
+    throw new WorkflowError("Manager sections can only be saved after opening.");
+  await prisma.review.update({
+    where: { id: reviewId },
+    data: {
+      managerOverallAssessment: draft.managerOverallAssessment ?? undefined,
+      areasForGrowth: draft.areasForGrowth ?? undefined,
+      developmentPlan: draft.developmentPlan ?? undefined,
+    },
+  });
+  await recordEvent(reviewId, "DRAFT_SAVED", actor);
+}
+
+// Manager completes: requires Manager Overall Assessment + Development Plan
+// (Decision 1); blocked unless the values review is complete (Decision 2); computes
+// and stores the numeric annualPerformanceScore (Decision 5 — no label).
+export async function managerCompleteYearEnd(reviewId: string, actor: AuthUser): Promise<void> {
+  const review = await getReviewOrThrow(reviewId);
+  if (review.type !== "YEAR_END") throw new WorkflowError("Not a year-end summary.");
+  if (!isReviewManager(actor, review)) throw new WorkflowError("Only the manager can complete it.");
+  if (!["AWAITING_MANAGER", "REOPENED"].includes(review.status))
+    throw new WorkflowError("Review is not awaiting manager completion.");
+  if (!review.managerOverallAssessment || !review.managerOverallAssessment.trim())
+    throw new WorkflowError("Please complete the Manager Overall Assessment before completing.");
+  if (!review.developmentPlan || !review.developmentPlan.trim())
+    throw new WorkflowError("Please complete the Development Plan before completing.");
+
+  const data = await assembleYearEndData(review.employeeId);
+  if (!data.valuesComplete)
+    throw new WorkflowError("The Annual Values Review must be completed before this year-end summary can be completed.");
+
+  await prisma.review.update({
+    where: { id: reviewId },
+    data: { status: "COMPLETE", annualPerformanceScore: data.annualPerformanceScore },
+  });
+  await recordEvent(reviewId, "MANAGER_COMPLETED", actor);
+}
+
+// Employee acknowledges a completed year-end summary; this triggers ARCHIVED
+// (Additional requirement 1). Records ACKNOWLEDGED then ARCHIVED, sets the pointer.
+export async function acknowledgeYearEnd(reviewId: string, actor: AuthUser): Promise<void> {
+  const review = await getReviewOrThrow(reviewId);
+  if (review.type !== "YEAR_END") throw new WorkflowError("Not a year-end summary.");
+  if (!isReviewEmployee(actor, review)) throw new WorkflowError("Only the employee can acknowledge it.");
+  if (review.status !== "COMPLETE") throw new WorkflowError("Only a completed review can be acknowledged.");
+
+  await recordEventAndMaybeAudit(reviewId, "ACKNOWLEDGED", actor);
+  await prisma.review.update({
+    where: { id: reviewId },
+    data: { acknowledgedAt: new Date(), acknowledgedBy: actor.employeeId, status: "ARCHIVED" },
+  });
+  await recordEventAndMaybeAudit(reviewId, "ARCHIVED", actor);
+}
+
+// HR reopens an archived year-end summary (only HR). Returns it to REOPENED.
+export async function reopenArchivedYearEnd(reviewId: string, actor: AuthUser, reason: string): Promise<void> {
+  const review = await getReviewOrThrow(reviewId);
+  if (review.type !== "YEAR_END") throw new WorkflowError("Not a year-end summary.");
+  if (!isHR(actor)) throw new WorkflowError("Only HR can reopen an archived year-end summary.");
+  if (review.status !== "ARCHIVED") throw new WorkflowError("Only an archived review can be reopened this way.");
+  assertTransition(review.status, "REOPENED");
+  await prisma.review.update({ where: { id: reviewId }, data: { status: "REOPENED" } });
+  await recordEventAndMaybeAudit(reviewId, "REOPENED", actor, reason);
+}
