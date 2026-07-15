@@ -45,3 +45,23 @@
   sought again on completion, with screenshots and a testing checklist.
 
 ---
+
+## Stage 3 (Annual Values Review) — COMPLETE and ACCEPTED
+
+- **Status:** Complete and accepted.
+- **Approved by:** Ash (Head of People).
+- **Date:** 15 July 2026.
+- **Verification:** Stage 3 acceptance harness 6/6; Stage 2 regression 6/6;
+  typecheck clean; full manual walk-through completed (see Stage 3 Testing Checklist).
+- **Delivered:** two-sided values workflow, four Tarabut values with inline anchors,
+  manager-only overall values score kept separate from performance, draft/return/
+  reopen/close, rating-difference highlighting, timeline + audit, electronic
+  acknowledgement, employee sees manager assessment when complete, server-side
+  permissions.
+- **Not included (deliberately):** review deadline locking (approved separately as a
+  future feature, scheduled with Notifications & Reminders v0.8); quarterly
+  consistency change (show manager assessment on completed quarterly reviews) —
+  queued as a small follow-up.
+- **Prototype release:** fictional data, mock auth. No real data.
+
+---

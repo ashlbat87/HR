@@ -1,16 +1,28 @@
-## [0.4] — Stage 3: Annual Values Review (planning approved; implementation starting)
+## [0.4] — Stage 3: Annual Values Review (COMPLETE)
 
-Planning for the Annual Values Review is approved (Product Roadmap v1.0 and Stage 3
-Technical Plan). Implementation is beginning; this entry completes when built and accepted.
+Annual Values Review delivered and accepted. Two-sided workflow for the four
+Tarabut values (Innovate with Impact, Drive Exceptional Results, Deliver Value to
+Customers, Win Collectively), each with employee self-rating + comment and manager
+rating + comment, and the values rating guide shown inline with anchors.
 
-Planned scope: two-sided values workflow for the four Tarabut values, per-value
-employee and manager ratings and comments, values rating guide inline, overall values
-score from manager ratings only (never blended with the quarterly score), electronic
-acknowledgement (employee sees completed review), user-facing timeline, compliance
-audit log, server-side permissions, rating-difference highlighting, draft/return/reopen/close.
+Overall values score is the mean of the manager's four scores only, stored in a
+separate valuesScore field and NEVER blended with the quarterly performance score.
+Employee self-scores are recorded and shown for comparison but are never official.
 
-Architecture: the shared quarterly workflow and form are being generalised to serve
-both review types; the Stage 2 acceptance harness is a mandatory regression gate.
+Includes: draft saving, status tracking, validation (all four values required to
+submit/complete), return to employee, reopen, close, rating-difference
+highlighting, the user-facing audit timeline plus compliance audit log, and
+electronic acknowledgement (employee acknowledges having seen the completed review,
+recorded as an ACKNOWLEDGED event with denormalised pointer). Once complete, the
+employee sees the manager's per-value assessment. Server-side permissions enforced.
+
+Architecture: the shared quarterly workflow and form logic were generalised to
+serve both review types (Option C: shared tested internals, separate presentational
+form). Quarterly UI left untouched.
+
+Verification: Stage 3 acceptance harness 6/6 (scripts/stage3-acceptance.ts); Stage 2
+regression 6/6 (scripts/stage2-acceptance.ts); typecheck clean. Prototype release;
+fictional data only.
 
 # Changelog
 
