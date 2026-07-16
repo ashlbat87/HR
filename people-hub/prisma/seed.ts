@@ -83,7 +83,36 @@ async function main() {
   // Rating guides: five performance + one values. One current version each,
   // with placeholder anchors for the three criteria (performance) / four values.
   const CRITERIA = ["IMPACT", "QUALITY", "DELIVERY"];
-  const VALUES = [
+  const VALUES_ANCHORS: Record<string, Record<number, string>> = {
+    "Innovate with Impact": {
+      5: "Behaviour has a transformative and organisation-wide impact. Consistently produces breakthrough ideas that significantly elevate processes, products, or team capabilities. Anticipates future challenges and pioneers new ways of working. Drives cross-functional innovation and influences the broader organisation.",
+      4: "Behaviour is strong, proactive, and influential. Regularly introduces new ideas, tools, or methods that improve efficiency or outcomes. Challenges outdated approaches and inspires others to explore better ways of doing things. Acts as a role model for innovation and continuous improvement.",
+      3: "Behaviours are demonstrated consistently. Actively seeks opportunities to improve processes, tools, or ways of working. Uses creativity and insights to refine existing solutions. Encourages team members to think differently and explore new approaches.",
+      2: "Behaviour is present but at a foundational level. Shows curiosity at times, though translating ideas into effective action is still developing. Occasionally suggests improvements, but they need more depth or follow-through. Challenges the status quo occasionally, though not yet in a proactive way.",
+      1: "Behaviour is rarely demonstrated. Avoids complex or unfamiliar problems and chooses the easiest path without improvement. Relies heavily on old ways of working and does not explore alternatives. Shows resistance to learning, new ideas, or change.",
+    },
+    "Drive Exceptional Results": {
+      5: "Behaviour has a transformative and organisation-wide impact. Delivers exceptional results that raise the bar across teams or functions. Leads complex initiatives with clarity, structure, and near-flawless execution. Anticipates needs, opportunities, and risks before they surface.",
+      4: "Behaviour is strong, proactive, and influential. Consistently balances urgency with high-quality execution. Translates goals and plans into effective action that drives strong results. Identifies and removes barriers to progress, accelerating momentum.",
+      3: "Behaviours are demonstrated consistently. Takes clear ownership of responsibilities and follows through reliably. Executes with good quality and attention to detail. Connects daily work to meaningful outcomes and team success.",
+      2: "Behaviour is present but at a foundational level. Meets expectations but demonstrates early-stage strategic thinking and prioritisation. Shows urgency at times, though focus is not always on the highest-impact work. Delivers adequate results, though overall impact remains modest.",
+      1: "Behaviour is rarely demonstrated. Avoids responsibility or shifts accountability to others. Lacks urgency; delays or inaction negatively affect results. Delivers work with low clarity or incomplete follow-through.",
+    },
+    "Deliver Value to Customers": {
+      5: "Behaviour has a transformative and organisation-wide impact. Shapes strategic solutions that meaningfully elevate customer success and loyalty. Identifies forward-thinking, high-impact opportunities that redefine customer experience. Creates long-lasting trust through exceptional insight and ownership.",
+      4: "Behaviour is strong, proactive, and influential. Anticipates customer needs and leads efforts to improve experience at scale. Delivers innovative approaches that enhance value and strengthen relationships. Acts as a trusted partner to customers and internal stakeholders.",
+      3: "Behaviours are demonstrated consistently. Shows strong awareness of customer needs and proactively seeks to address them. Delivers consistent, reliable experiences that strengthen customer trust. Identifies opportunities to enhance customer value.",
+      2: "Behaviour is present but at a foundational level. Meets basic customer expectations but seldom exceeds them. Shows some initiative, typically relying on familiar approaches. Suggests improvements from time to time, though overall impact is limited.",
+      1: "Behaviour is rarely demonstrated. Shows limited understanding of customer needs; solutions often miss the mark. Interactions feel transactional and do not build trust. Responds reactively rather than seeking root causes.",
+    },
+    "Win Collectively": {
+      5: "Behaviour has a transformative and organisation-wide impact. Reinvents or elevates collaboration practices, enabling teams to work more effectively together. Unifies diverse groups around common goals and accelerates collective progress. Inspires others to adopt collaborative behaviours across the organisation.",
+      4: "Behaviour is strong, proactive, and influential. Proactively brings teams together, removes barriers, and enables smoother collaboration. Shares information openly and fosters trust across functions. Models inclusive teamwork and sets a high standard for cross-functional alignment.",
+      3: "Behaviours are demonstrated consistently. Actively contributes to team discussions and aligns efforts with shared goals. Builds cooperative relationships and reliably supports colleagues. Encourages inclusive dialogue and a positive, collaborative environment.",
+      2: "Behaviour is present but at a foundational level. Communicates respectfully but is not always open or transparent in team settings. Participates in collaboration when prompted but seldom initiates it. Acknowledges others' contributions occasionally, though teamwork impact remains limited.",
+      1: "Behaviour is rarely demonstrated. Works independently even when collaboration is expected. Prioritises personal preferences or recognition over team cohesion. Rarely takes responsibility for their part in shared outcomes.",
+    },
+  };const VALUES = [
     "Innovate with Impact",
     "Drive Exceptional Results",
     "Deliver Value to Customers",
@@ -122,8 +151,9 @@ async function main() {
   });
   for (const item of VALUES) {
     for (let score = 1; score <= 5; score++) {
+      const realText = VALUES_ANCHORS[item]?.[score];
       await prisma.ratingGuideAnchor.create({
-        data: { versionId: vv.id, item, score, text: `${item} — level ${score} (placeholder)` },
+        data: { versionId: vv.id, item, score, text: realText ?? `${item} — level ${score} (placeholder)` },
       });
     }
   }

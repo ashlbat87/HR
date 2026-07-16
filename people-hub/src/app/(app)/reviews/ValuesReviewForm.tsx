@@ -27,6 +27,16 @@ const LABELS: Record<ValueItem, string> = {
   WIN_COLLECTIVELY: "Win Collectively",
 };
 
+const DEFINITIONS: Record<ValueItem, string> = {
+  INNOVATE_WITH_IMPACT: "We embrace curiosity, challenge assumptions, ask bold questions, and pursue solutions that create real-world impact. Fueled by curiosity, rapid learning, and creativity, we continuously push boundaries.",
+  DRIVE_EXCEPTIONAL_RESULTS: "We don't just move fast, we deliver exceptional results. Taking full ownership of outcomes, we work with precision, urgency, and accountability, ensuring every action contributes to high-impact execution.",
+  DELIVER_VALUE_TO_CUSTOMERS: "We think like our customers and act like owners, taking full responsibility for delivering value. By deeply understanding their needs and proactively driving solutions, we create exceptional experiences that build lasting trust.",
+  WIN_COLLECTIVELY: "Success is amplified when we work together. We embrace honesty, shared goals, and accountability to foster a culture of collaboration, inclusivity, and mutual support, where every voice matters and everyone thrives.",
+};
+
+// Official Tarabut rating labels, low to high.
+const RATING_LABELS: Record<number, string> = { 1: "Poor", 2: "Base", 3: "Intermediate", 4: "Advanced", 5: "Rock Star" };
+
 interface ExistingRating {
   item: string;
   score: number;
@@ -44,7 +54,6 @@ interface Props {
   canReopen: boolean;
   isEmployee: boolean;
   acknowledgedAt: string | null;
-  // anchors[valueItem][score] = anchor text; keyed by the value LABEL as stored in the guide.
   anchors: Record<string, Record<number, string>>;
 }
 
@@ -58,7 +67,7 @@ export function ValuesReviewForm(props: Props) {
   const isEmployeeForm = props.mode === "employee";
   const initial = ratingMap(isEmployeeForm ? props.employeeRatings : props.managerRatings);
   const employeeMap = ratingMap(props.employeeRatings);
-const managerMap = ratingMap(props.managerRatings);
+  const managerMap = ratingMap(props.managerRatings);
   const showManagerToEmployee = isEmployeeForm && ["COMPLETE", "CLOSED", "REOPENED"].includes(props.status);
 
   const [scores, setScores] = useState<Record<string, number>>(() => {
@@ -127,16 +136,20 @@ const managerMap = ratingMap(props.managerRatings);
         const empRating = employeeMap[it];
         const diff = !isEmployeeForm && empRating && currentScore && empRating.score !== currentScore;
         return (
-          <div className="card" key={it}>
-            <div style={{ fontWeight: 600, marginBottom: 4 }}>{label}</div>
+          <div className="card" key={it} style={{ padding: "22px 24px", marginBottom: 16 }}>
+            <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>{label}</div>
+            <div className="muted" style={{ fontSize: 13, marginBottom: 16, lineHeight: 1.5 }}>{DEFINITIONS[it]}</div>
+
             {!isEmployeeForm && empRating ? (
-              <div className="muted" style={{ fontSize: 13, marginBottom: 8 }}>
-                Employee self-score: <strong>{empRating.score || "—"}</strong>
+              <div className="muted" style={{ fontSize: 13, marginBottom: 12 }}>
+                Employee self-rating: <strong>{empRating.score ? `${empRating.score} · ${RATING_LABELS[empRating.score]}` : "—"}</strong>
                 {empRating.comment ? ` · "${empRating.comment}"` : ""}
                 {diff ? <span className="chip status-awaiting" style={{ marginLeft: 8 }}>Differs from yours</span> : null}
               </div>
             ) : null}
-            <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
+
+            {/* Rating level buttons: number + official label, low to high */}
+            <div style={{ display: "flex", gap: 8, marginBottom: shownAnchor ? 14 : 0 }}>
               {[1, 2, 3, 4, 5].map((n) => {
                 const selected = currentScore === n;
                 return (
@@ -145,38 +158,53 @@ const managerMap = ratingMap(props.managerRatings);
                     type="button"
                     disabled={locked || busy}
                     onClick={() => setScores({ ...scores, [it]: n })}
-                    className={selected ? "" : "secondary"}
+                    className=""
                     style={{
                       flex: 1,
-                      ...(selected
-                        ? { background: "var(--purple)", color: "#fff", opacity: 1, borderColor: "var(--purple)" }
-                        : {}),
-                      ...(locked && !selected ? { opacity: 0.55 } : {}),
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      gap: 3,
+                      padding: "12px 6px",
+                      borderRadius: 12,
+                      cursor: locked ? "default" : "pointer",
+                      transition: "all 0.18s ease",
+                      border: selected ? "1.5px solid var(--purple)" : "1px solid var(--border)",
+                      background: selected ? "var(--purple-subtle)" : "var(--surface, #fff)",
+                      boxShadow: selected ? "0 2px 8px rgba(98,82,219,0.18)" : "none",
+                      transform: selected ? "translateY(-1px)" : "none",
+                      opacity: locked && !selected ? 0.55 : 1,
                     }}
                   >
-                    {n}
+                    <span style={{ fontSize: 18, fontWeight: 600, color: selected ? "var(--purple-dark)" : "var(--text)" }}>{n}</span>
+                    <span style={{ fontSize: 11, fontWeight: 500, color: selected ? "var(--purple-dark)" : "var(--muted)", textAlign: "center", lineHeight: 1.2 }}>{RATING_LABELS[n]}</span>
                   </button>
                 );
               })}
             </div>
-            {shownAnchor ? <div className="muted" style={{ fontSize: 12, marginBottom: 8 }}>{shownAnchor}</div> : null}
-            {showManagerToEmployee && managerMap[it] ? (
-              <div className="card" style={{ background: "var(--purple-subtle)", border: "none", marginBottom: 8, padding: "10px 12px" }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: "var(--purple-dark)", marginBottom: 2 }}>
-                  Manager rating: {managerMap[it].score || "—"}
-                </div>
-                {managerMap[it].comment ? (
-                  <div className="muted" style={{ fontSize: 13 }}>{managerMap[it].comment}</div>
-                ) : (
-                  <div className="muted" style={{ fontSize: 13 }}>No comment.</div>
-                )}
+
+            {/* Selected level's behavioural definition only */}
+            {shownAnchor ? (
+              <div style={{ background: "var(--purple-subtle)", borderRadius: 10, padding: "12px 14px", marginBottom: 12 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: "var(--purple-dark)" }}>{RATING_LABELS[currentScore]}: </span>
+                <span style={{ fontSize: 13, color: "var(--text)", lineHeight: 1.6 }}>{shownAnchor}</span>
               </div>
             ) : null}
+
+            {showManagerToEmployee && managerMap[it] ? (
+              <div style={{ background: "var(--purple-subtle)", borderRadius: 10, padding: "10px 12px", marginBottom: 12 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: "var(--purple-dark)", marginBottom: 2 }}>
+                  Manager rating: {managerMap[it].score ? `${managerMap[it].score} · ${RATING_LABELS[managerMap[it].score]}` : "—"}
+                </div>
+                {managerMap[it].comment ? <div className="muted" style={{ fontSize: 13 }}>{managerMap[it].comment}</div> : <div className="muted" style={{ fontSize: 13 }}>No comment.</div>}
+              </div>
+            ) : null}
+
             <input
               type="text"
               value={comments[it]}
               disabled={locked || busy}
-              placeholder="Comment (optional)"
+              placeholder="Add a comment (optional)"
               onChange={(ev) => setComments({ ...comments, [it]: ev.target.value })}
               style={{ width: "100%" }}
             />
@@ -214,9 +242,7 @@ const managerMap = ratingMap(props.managerRatings);
                   <span className="muted" style={{ fontSize: 12 }}>Self-assessment</span>
                   <span style={{ fontSize: 10, fontWeight: 600, color: "var(--muted)", background: "var(--n20)", borderRadius: 4, padding: "1px 6px", textTransform: "uppercase", letterSpacing: "0.03em" }}>For comparison</span>
                 </div>
-                {diff !== null ? (
-                  <div style={{ marginLeft: "auto", fontSize: 12 }} className="muted">Difference {diff.toFixed(1)}</div>
-                ) : null}
+                {diff !== null ? <div style={{ marginLeft: "auto", fontSize: 12 }} className="muted">Difference {diff.toFixed(1)}</div> : null}
               </div>
               <div className="muted" style={{ fontSize: 12, marginTop: 10 }}>
                 Manager rating is the official values score, from manager scores only, kept separate from performance. The two scores are never blended.
@@ -234,13 +260,7 @@ const managerMap = ratingMap(props.managerRatings);
           ) : (
             <>
               <button onClick={complete} disabled={busy}>Complete review</button>
-              <button
-                onClick={() => handle(() => returnToEmployeeAction(props.reviewId, "Returned for changes"), "Returned to employee.")}
-                disabled={busy}
-                className="btn secondary"
-              >
-                Return to employee
-              </button>
+              <button onClick={() => handle(() => returnToEmployeeAction(props.reviewId, "Returned for changes"), "Returned to employee.")} disabled={busy} className="btn secondary">Return to employee</button>
             </>
           )}
         </div>
@@ -256,9 +276,7 @@ const managerMap = ratingMap(props.managerRatings);
             props.acknowledgedAt ? (
               <span className="chip status-completed">Acknowledged {new Date(props.acknowledgedAt).toLocaleDateString()}</span>
             ) : (
-              <button onClick={() => handle(() => acknowledgeReviewAction(props.reviewId), "Acknowledged.")} disabled={busy}>
-                Acknowledge I have seen this review
-              </button>
+              <button onClick={() => handle(() => acknowledgeReviewAction(props.reviewId), "Acknowledged.")} disabled={busy}>Acknowledge I have seen this review</button>
             )
           ) : null}
           {!props.canReopen && !(props.isEmployee && props.status === "COMPLETE") ? (
