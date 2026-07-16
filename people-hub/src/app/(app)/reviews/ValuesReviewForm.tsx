@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Lightbulb, Target, HeartHandshake, Users } from "lucide-react";
 import {
   saveEmployeeValuesDraftAction,
   saveManagerValuesDraftAction,
@@ -34,7 +35,13 @@ const DEFINITIONS: Record<ValueItem, string> = {
   WIN_COLLECTIVELY: "Success is amplified when we work together. We embrace honesty, shared goals, and accountability to foster a culture of collaboration, inclusivity, and mutual support, where every voice matters and everyone thrives.",
 };
 
-// Official Tarabut rating labels, low to high.
+const ICONS: Record<ValueItem, any> = {
+  INNOVATE_WITH_IMPACT: Lightbulb,
+  DRIVE_EXCEPTIONAL_RESULTS: Target,
+  DELIVER_VALUE_TO_CUSTOMERS: HeartHandshake,
+  WIN_COLLECTIVELY: Users,
+};
+
 const RATING_LABELS: Record<number, string> = { 1: "Poor", 2: "Base", 3: "Intermediate", 4: "Advanced", 5: "Rock Star" };
 
 interface ExistingRating {
@@ -130,15 +137,23 @@ export function ValuesReviewForm(props: Props) {
 
       {VALUES.map((it) => {
         const label = LABELS[it];
+        const Icon = ICONS[it];
         const anchorSet = props.anchors[label] ?? {};
         const currentScore = scores[it];
         const shownAnchor = currentScore ? anchorSet[currentScore] : null;
         const empRating = employeeMap[it];
         const diff = !isEmployeeForm && empRating && currentScore && empRating.score !== currentScore;
         return (
-          <div className="card" key={it} style={{ padding: "22px 24px", marginBottom: 16 }}>
-            <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>{label}</div>
-            <div className="muted" style={{ fontSize: 13, marginBottom: 16, lineHeight: 1.5 }}>{DEFINITIONS[it]}</div>
+          <div className="card" key={it} style={{ padding: "26px 28px", marginBottom: 18 }}>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 14, marginBottom: 18 }}>
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: "var(--purple-subtle)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Icon size={22} color="var(--purple-dark)" strokeWidth={2} />
+              </div>
+              <div>
+                <div style={{ fontSize: 17, fontWeight: 600, marginBottom: 3 }}>{label}</div>
+                <div className="muted" style={{ fontSize: 13, lineHeight: 1.55 }}>{DEFINITIONS[it]}</div>
+              </div>
+            </div>
 
             {!isEmployeeForm && empRating ? (
               <div className="muted" style={{ fontSize: 13, marginBottom: 12 }}>
@@ -148,8 +163,7 @@ export function ValuesReviewForm(props: Props) {
               </div>
             ) : null}
 
-            {/* Rating level buttons: number + official label, low to high */}
-            <div style={{ display: "flex", gap: 8, marginBottom: shownAnchor ? 14 : 0 }}>
+            <div style={{ display: "flex", gap: 10, marginBottom: shownAnchor || (showManagerToEmployee && managerMap[it]) ? 16 : 12 }}>
               {[1, 2, 3, 4, 5].map((n) => {
                 const selected = currentScore === n;
                 return (
@@ -158,42 +172,40 @@ export function ValuesReviewForm(props: Props) {
                     type="button"
                     disabled={locked || busy}
                     onClick={() => setScores({ ...scores, [it]: n })}
-                    className=""
                     style={{
                       flex: 1,
                       display: "flex",
                       flexDirection: "column",
                       alignItems: "center",
-                      gap: 3,
-                      padding: "12px 6px",
-                      borderRadius: 12,
+                      gap: 4,
+                      padding: "14px 6px",
+                      borderRadius: 14,
                       cursor: locked ? "default" : "pointer",
                       transition: "all 0.18s ease",
                       border: selected ? "1.5px solid var(--purple)" : "1px solid var(--border)",
-                      background: selected ? "var(--purple-subtle)" : "var(--surface, #fff)",
-                      boxShadow: selected ? "0 2px 8px rgba(98,82,219,0.18)" : "none",
-                      transform: selected ? "translateY(-1px)" : "none",
-                      opacity: locked && !selected ? 0.55 : 1,
+                      background: selected ? "var(--purple-subtle)" : "#fff",
+                      boxShadow: selected ? "0 4px 12px rgba(98,82,219,0.20)" : "none",
+                      transform: selected ? "translateY(-2px)" : "none",
+                      opacity: locked && !selected ? 0.5 : 1,
                     }}
                   >
-                    <span style={{ fontSize: 18, fontWeight: 600, color: selected ? "var(--purple-dark)" : "var(--text)" }}>{n}</span>
+                    <span style={{ fontSize: 20, fontWeight: 700, color: selected ? "var(--purple-dark)" : "var(--text)" }}>{n}</span>
                     <span style={{ fontSize: 11, fontWeight: 500, color: selected ? "var(--purple-dark)" : "var(--muted)", textAlign: "center", lineHeight: 1.2 }}>{RATING_LABELS[n]}</span>
                   </button>
                 );
               })}
             </div>
 
-            {/* Selected level's behavioural definition only */}
             {shownAnchor ? (
-              <div style={{ background: "var(--purple-subtle)", borderRadius: 10, padding: "12px 14px", marginBottom: 12 }}>
-                <span style={{ fontSize: 13, fontWeight: 600, color: "var(--purple-dark)" }}>{RATING_LABELS[currentScore]}: </span>
-                <span style={{ fontSize: 13, color: "var(--text)", lineHeight: 1.6 }}>{shownAnchor}</span>
+              <div style={{ background: "var(--purple-subtle)", borderRadius: 12, padding: "14px 16px", marginBottom: 14 }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: "var(--purple-dark)" }}>{RATING_LABELS[currentScore]}: </span>
+                <span style={{ fontSize: 13, color: "var(--text)", lineHeight: 1.65 }}>{shownAnchor}</span>
               </div>
             ) : null}
 
             {showManagerToEmployee && managerMap[it] ? (
-              <div style={{ background: "var(--purple-subtle)", borderRadius: 10, padding: "10px 12px", marginBottom: 12 }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: "var(--purple-dark)", marginBottom: 2 }}>
+              <div style={{ background: "#F7F8FA", borderRadius: 12, padding: "12px 14px", marginBottom: 14 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text)", marginBottom: 2 }}>
                   Manager rating: {managerMap[it].score ? `${managerMap[it].score} · ${RATING_LABELS[managerMap[it].score]}` : "—"}
                 </div>
                 {managerMap[it].comment ? <div className="muted" style={{ fontSize: 13 }}>{managerMap[it].comment}</div> : <div className="muted" style={{ fontSize: 13 }}>No comment.</div>}
