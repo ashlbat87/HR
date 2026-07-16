@@ -88,13 +88,19 @@ export default async function ReviewDetailPage({
       <p className="muted" style={{ fontSize: 12, marginBottom: 12 }}>
         <Link href="/reviews">My reviews</Link> › {review.employee.displayName}
       </p>
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
-        <h1 style={{ margin: 0 }}>{title} · {review.cycle.label}</h1>
-        <span className={`chip ${STATUS_CLASS[status] ?? ""}`}>{STATUS_LABEL[status] ?? status}</span>
-      </div>
-      <p className="muted" style={{ marginTop: 0, marginBottom: 18 }}>
-        {review.employee.displayName} · Manager: {review.manager.displayName}
-      </p>
+      {!isYearEnd ? (
+        <div style={{ background: "var(--purple-subtle)", border: "0.5px solid #E7E3F8", borderRadius: 14, padding: "22px 26px", position: "relative", overflow: "hidden", marginBottom: 24 }}>
+          <div style={{ position: "absolute", top: 0, left: 0, width: 3, height: "100%", background: "var(--purple)" }} />
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
+            <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--purple-dark)", fontWeight: 600 }}>{title} · {review.cycle.label}</div>
+            <span className={`chip ${STATUS_CLASS[status] ?? ""}`}>{STATUS_LABEL[status] ?? status}</span>
+          </div>
+          <h1 style={{ margin: 0, fontSize: 21, color: "#1D102C" }}>{review.employee.displayName}</h1>
+          <p className="muted" style={{ margin: "2px 0 0", fontSize: 13 }}>
+            {review.employee.role ?? ""}{review.employee.role ? " · " : ""}Manager: {review.manager.displayName}
+          </p>
+        </div>
+      ) : null}
  {isYearEnd ? (
         <YearEndForm
           reviewId={review.id}
