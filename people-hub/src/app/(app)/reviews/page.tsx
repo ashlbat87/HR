@@ -74,8 +74,11 @@ export default async function ReviewsPage() {
 
   return (
     <div>
-      <h1>Reviews</h1>
-      <p className="muted" style={{ marginTop: 0, marginBottom: 28 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+        <div style={{ width: 3, height: 22, background: "var(--purple)", borderRadius: 2 }} />
+        <h1 style={{ margin: 0 }}>Reviews</h1>
+      </div>
+      <p className="muted" style={{ marginTop: 0, marginBottom: 28, marginLeft: 13 }}>
         {hr ? "Your own reviews, and organisation-wide review administration." : manager ? "Your reviews and your team's." : "Your performance and values reviews."}
       </p>
 
