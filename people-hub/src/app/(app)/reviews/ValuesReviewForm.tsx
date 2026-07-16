@@ -198,7 +198,10 @@ const managerMap = ratingMap(props.managerRatings);
           const diff = selfAvg !== null ? Math.abs(props.valuesScore! - selfAvg) : null;
           return (
             <div className="card">
-              <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 12 }}>Overall values summary</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                <div style={{ width: 3, height: 15, background: "var(--purple)", borderRadius: 2 }} />
+                <div style={{ fontSize: 15, fontWeight: 600 }}>Overall values summary</div>
+              </div>
               <div style={{ display: "flex", alignItems: "center", gap: 28, flexWrap: "wrap" }}>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
                   <span style={{ fontSize: 24, fontWeight: 600 }}>{props.valuesScore!.toFixed(1)}</span>
