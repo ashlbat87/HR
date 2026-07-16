@@ -45,7 +45,7 @@ export function EmployeeRatingCard({
     >
       <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
         <User size={13} color="var(--purple-dark)" strokeWidth={2.2} />
-        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "var(--purple-dark)" }}>Self</span>
+        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "var(--purple-dark)" }}>Employee review</span>
       </div>
       <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
         {score ? <span style={{ fontSize: num, fontWeight: 700, color: "var(--purple-dark)" }}>{score}</span> : null}

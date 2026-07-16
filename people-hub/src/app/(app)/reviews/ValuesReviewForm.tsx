@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Lightbulb, Target, HeartHandshake, Users } from "lucide-react";
+import { EmployeeRatingCard } from "@/modules/performance/RatingBadges";
 import {
   saveEmployeeValuesDraftAction,
   saveManagerValuesDraftAction,
@@ -155,11 +156,11 @@ export function ValuesReviewForm(props: Props) {
               </div>
             </div>
 
-            {!isEmployeeForm && empRating ? (
-              <div className="muted" style={{ fontSize: 13, marginBottom: 12 }}>
-                Employee self-rating: <strong>{empRating.score ? `${empRating.score} · ${RATING_LABELS[empRating.score]}` : "—"}</strong>
-                {empRating.comment ? ` · "${empRating.comment}"` : ""}
-                {diff ? <span className="chip status-awaiting" style={{ marginLeft: 8 }}>Differs from yours</span> : null}
+           {!isEmployeeForm && empRating ? (
+              <div style={{ marginBottom: 16, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                <EmployeeRatingCard score={empRating.score || null} size="sm" />
+                {diff ? <span className="muted" style={{ fontSize: 12 }}>Different perspectives, worth discussing.</span> : null}
+                {empRating.comment ? <div className="muted" style={{ fontSize: 13, width: "100%" }}>Employee comment: &ldquo;{empRating.comment}&rdquo;</div> : null}
               </div>
             ) : null}
 
