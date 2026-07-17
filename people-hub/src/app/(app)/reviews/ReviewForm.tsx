@@ -12,6 +12,7 @@ import {
   reopenReviewAction,
   closeReviewAction,
 } from "./actions";
+import { ManagerRatingCard } from "@/modules/performance/RatingBadges";
 
 const ITEMS = ["IMPACT", "QUALITY", "DELIVERY"] as const;
 type Item = (typeof ITEMS)[number];
@@ -21,7 +22,7 @@ const LABELS: Record<Item, string> = {
   QUALITY: "Quality",
   DELIVERY: "Delivery Reliability",
 };
-
+const RATING_LABELS: Record<number, string> = { 1: "Poor", 2: "Base", 3: "Intermediate", 4: "Advanced", 5: "Rock Star" };
 interface ExistingRating {
   item: string;
   score: number;
@@ -144,7 +145,7 @@ export function ReviewForm(props: Props) {
                 {diff ? <span className="chip status-awaiting" style={{ marginLeft: 8 }}>Differs from yours</span> : null}
               </div>
             ) : null}
-            <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
+           <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
               {[1, 2, 3, 4, 5].map((n) => {
                 const selected = currentScore === n;
                 return (
@@ -153,28 +154,35 @@ export function ReviewForm(props: Props) {
                     type="button"
                     disabled={locked || busy}
                     onClick={() => setScores({ ...scores, [it]: n })}
-                    className={selected ? "" : "secondary"}
                     style={{
                       flex: 1,
-                      ...(selected ? { background: "var(--purple)", color: "#fff", opacity: 1, borderColor: "var(--purple)" } : {}),
-                      ...(locked && !selected ? { opacity: 0.55 } : {}),
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      gap: 4,
+                      padding: "14px 6px",
+                      borderRadius: 14,
+                      cursor: locked ? "default" : "pointer",
+                      transition: "all 0.18s ease",
+                      border: selected ? "1.5px solid var(--purple)" : "1px solid var(--border)",
+                      background: selected ? "var(--purple-subtle)" : "#fff",
+                      boxShadow: selected ? "0 4px 12px rgba(98,82,219,0.20)" : "none",
+                      transform: selected ? "translateY(-2px)" : "none",
+                      opacity: locked && !selected ? 0.5 : 1,
                     }}
                   >
-                    {n}
+                    <span style={{ fontSize: 20, fontWeight: 700, color: selected ? "var(--purple-dark)" : "var(--text)" }}>{n}</span>
+                    <span style={{ fontSize: 11, fontWeight: 500, color: selected ? "var(--purple-dark)" : "var(--muted)", textAlign: "center", lineHeight: 1.2 }}>{RATING_LABELS[n]}</span>
                   </button>
                 );
               })}
             </div>
             {showManagerToEmployee && managerMap[it] ? (
-              <div className="card" style={{ background: "var(--purple-subtle)", border: "none", marginBottom: 8, padding: "10px 12px" }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: "var(--purple-dark)", marginBottom: 2 }}>
-                  Manager rating: {managerMap[it].score || "—"}
-                </div>
+              <div style={{ marginTop: 12, marginBottom: 8 }}>
+                <ManagerRatingCard score={managerMap[it].score || null} size="sm" />
                 {managerMap[it].comment ? (
-                  <div className="muted" style={{ fontSize: 13 }}>{managerMap[it].comment}</div>
-                ) : (
-                  <div className="muted" style={{ fontSize: 13 }}>No comment.</div>
-                )}
+                  <div className="muted" style={{ fontSize: 13, marginTop: 8 }}>Manager comment: &ldquo;{managerMap[it].comment}&rdquo;</div>
+                ) : null}
               </div>
             ) : null}
             <input

@@ -85,7 +85,7 @@ export function ManagerRatingCard({
     >
       <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
         <ShieldCheck size={13} color="#fff" strokeWidth={2.2} />
-        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "#fff" }}>Manager · Official</span>
+        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "#fff" }}>Manager</span>
       </div>
       <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
         {score ? <span style={{ fontSize: num, fontWeight: 700, color: "#fff" }}>{score}</span> : null}
