@@ -90,17 +90,7 @@ export default async function ReviewsPage() {
         <div className="card">{myReviews.map((r) => <ReviewRow key={r.id} r={r} />)}</div>
       )}
 
-      {manager ? (
-        <>
-          <h2 style={{ marginTop: 32 }}>Your team&apos;s reviews</h2>
-          {teamReviews.length === 0 ? (
-            <div className="empty">No reviews for your team yet.</div>
-          ) : (
-            <div className="card">{teamReviews.map((r) => <ReviewRow key={r.id} r={r} />)}</div>
-          )}
-        </>
-      ) : null}
-
+      
       {/* HR ADMINISTRATION */}
       {hr ? (
         <div style={{ marginTop: 44, paddingTop: 8, borderTop: "0.5px solid var(--border)" }}>
