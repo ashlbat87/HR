@@ -39,7 +39,7 @@ interface RatingInput {
 
 export async function createCycleReviewsAction(cycleId: string): Promise<ActionResult> {
   const user = await getCurrentUser();
-  if (!user || !isHR(user)) return { error: "HR access required." };
+    if (!user || !isHR(user)) return { error: "HR access required." };
   return run(async () => {
     await createQuarterlyReviewsForCycle(cycleId, user);
   }, "/reviews");
