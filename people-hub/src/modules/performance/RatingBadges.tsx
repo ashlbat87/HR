@@ -21,10 +21,12 @@ function labelFor(score: number | null | undefined, explicit?: string) {
 export function EmployeeRatingCard({
   score,
   label,
+  comment,
   size = "md",
 }: {
   score?: number | null;
   label?: string;
+  comment?: string | null;
   size?: "sm" | "md";
 }) {
   const pad = size === "sm" ? "8px 12px" : "12px 16px";
@@ -51,6 +53,9 @@ export function EmployeeRatingCard({
         {score ? <span style={{ fontSize: num, fontWeight: 700, color: "var(--purple-dark)" }}>{score}</span> : null}
         <span style={{ fontSize: size === "sm" ? 12 : 13, fontWeight: 600, color: "var(--purple-dark)" }}>{labelFor(score, label)}</span>
       </div>
+      {comment ? (
+        <div style={{ fontSize: 13, color: "var(--purple-dark)", marginTop: 6, lineHeight: 1.5, opacity: 0.85 }}>{comment}</div>
+      ) : null}
     </div>
   );
 }

@@ -12,6 +12,11 @@ import {
   managerOpen,
   saveManagerDraft,
   managerComplete,
+  createValuesReviewsForCycle,
+  saveEmployeeValuesDraft,
+  submitValuesReview,
+  saveManagerValuesDraft,
+  managerCompleteValues,
 } from "../src/modules/performance/review-workflow";
 
 const prisma = new PrismaClient();
@@ -171,7 +176,7 @@ async function main() {
     data: { type: "QUARTERLY", label: "Q2 2026", isOpen: true },
   });
   // An open annual values cycle for Stage 3.
-  await prisma.reviewCycle.create({
+  const vCycle = await prisma.reviewCycle.create({
     data: { type: "ANNUAL_VALUES", label: "Values 2026", isOpen: true },
   });
   await prisma.reviewCycle.create({
@@ -223,6 +228,38 @@ async function main() {
     developmentAction: "Lead a cross-team initiative next quarter to build breadth.",
   });
   await managerComplete(marcoQ.id, soojinUser);
+
+  // Drive Marco's annual values review to COMPLETE with ratings and comments.
+  await createValuesReviewsForCycle(vCycle.id, {
+    employeeId: (await prisma.employee.findUniqueOrThrow({ where: { workEmail: "wafa@example.test" } })).id,
+    email: "wafa@example.test",
+    displayName: "Wafa Al-Sayed",
+    roles: ["EMPLOYEE", "HR_ADMIN"],
+  } as any);
+
+  const marcoV = await prisma.review.findFirstOrThrow({ where: { employeeId: marco.id, type: "ANNUAL_VALUES" } });
+
+  await saveEmployeeValuesDraft(marcoV.id, marcoUser, {
+    ratings: [
+      { item: "INNOVATE_WITH_IMPACT", score: 4, comment: "Brought fresh thinking to the retry logic." },
+      { item: "DRIVE_EXCEPTIONAL_RESULTS", score: 4, comment: "Owned the reliability outcome end to end." },
+      { item: "DELIVER_VALUE_TO_CUSTOMERS", score: 3, comment: "Kept the customer impact in view throughout." },
+      { item: "WIN_COLLECTIVELY", score: 3, comment: "Worked well with the platform team." },
+    ],
+    employeeReflection: "Proud of how the team pulled together this year.",
+  });
+  await submitValuesReview(marcoV.id, marcoUser);
+  await managerOpen(marcoV.id, soojinUser);
+  await saveManagerValuesDraft(marcoV.id, soojinUser, {
+    ratings: [
+      { item: "INNOVATE_WITH_IMPACT", score: 4, comment: "Genuinely curious and willing to challenge assumptions." },
+      { item: "DRIVE_EXCEPTIONAL_RESULTS", score: 4, comment: "Strong ownership and follow-through all year." },
+      { item: "DELIVER_VALUE_TO_CUSTOMERS", score: 3, comment: "Solid customer focus; room to engage earlier with their needs." },
+      { item: "WIN_COLLECTIVELY", score: 4, comment: "A generous collaborator others rely on." },
+    ],
+  });
+  await managerCompleteValues(marcoV.id, soojinUser);
+
   console.log(`Seeded ${PEOPLE.length} employees, 6 rating guides, 1 cycle.`);
 }
 

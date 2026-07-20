@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Lightbulb, Target, HeartHandshake, Users } from "lucide-react";
+import { Lightbulb, Target, HeartHandshake, Users, User } from "lucide-react";
 import { EmployeeRatingCard, ManagerRatingCard } from "@/modules/performance/RatingBadges";
 import {
   saveEmployeeValuesDraftAction,
@@ -156,71 +156,71 @@ export function ValuesReviewForm(props: Props) {
               </div>
             </div>
 
-           {!isEmployeeForm && empRating ? (
-              <div style={{ marginBottom: 16, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-                <EmployeeRatingCard score={empRating.score || null} size="sm" />
-                {diff ? <span className="muted" style={{ fontSize: 12 }}>Different perspectives, worth discussing.</span> : null}
-                {empRating.comment ? <div className="muted" style={{ fontSize: 13, width: "100%" }}>Employee comment: &ldquo;{empRating.comment}&rdquo;</div> : null}
+            <div style={{ border: "1px solid #D9D3F5", background: "#F7F5FD", borderRadius: 12, padding: 16, marginBottom: 14 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 10 }}>
+                <User size={12} color="var(--purple-dark)" strokeWidth={2.2} />
+                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "var(--purple-dark)" }}>{isEmployeeForm ? "Your rating" : "Employee rating"}</span>
               </div>
-            ) : null}
-
-            <div style={{ display: "flex", gap: 10, marginBottom: shownAnchor || (showManagerToEmployee && managerMap[it]) ? 16 : 12 }}>
-              {[1, 2, 3, 4, 5].map((n) => {
-                const selected = currentScore === n;
-                return (
-                  <button
-                    key={n}
-                    type="button"
-                    disabled={locked || busy}
-                    onClick={() => setScores({ ...scores, [it]: n })}
-                    style={{
-                      flex: 1,
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      gap: 4,
-                      padding: "14px 6px",
-                      borderRadius: 14,
-                      cursor: locked ? "default" : "pointer",
-                      transition: "all 0.18s ease",
-                      border: selected ? "1.5px solid var(--purple)" : "1px solid var(--border)",
-                      background: selected ? "var(--purple-subtle)" : "#fff",
-                      boxShadow: selected ? "0 4px 12px rgba(98,82,219,0.20)" : "none",
-                      transform: selected ? "translateY(-2px)" : "none",
-                      opacity: locked && !selected ? 0.5 : 1,
-                    }}
-                  >
-                    <span style={{ fontSize: 20, fontWeight: 700, color: selected ? "var(--purple-dark)" : "var(--text)" }}>{n}</span>
-                    <span style={{ fontSize: 11, fontWeight: 500, color: selected ? "var(--purple-dark)" : "var(--muted)", textAlign: "center", lineHeight: 1.2 }}>{RATING_LABELS[n]}</span>
-                  </button>
-                );
-              })}
+              <div style={{ display: "flex", gap: 8, marginBottom: shownAnchor ? 12 : 0 }}>
+                {[1, 2, 3, 4, 5].map((n) => {
+                  const selected = currentScore === n;
+                  return (
+                    <button
+                      key={n}
+                      type="button"
+                      disabled={locked || busy}
+                      onClick={() => setScores({ ...scores, [it]: n })}
+                      style={{
+                        flex: 1,
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: 4,
+                        padding: "12px 5px",
+                        borderRadius: 10,
+                        cursor: locked ? "default" : "pointer",
+                        transition: "all 0.18s ease",
+                        border: selected ? "1.5px solid var(--purple)" : "1px solid var(--border)",
+                        background: selected ? "var(--purple-subtle)" : "#fff",
+                        boxShadow: selected ? "0 4px 12px rgba(98,82,219,0.20)" : "none",
+                        transform: selected ? "translateY(-2px)" : "none",
+                        opacity: locked && !selected ? 0.5 : 1,
+                      }}
+                    >
+                      <span style={{ fontSize: 18, fontWeight: 700, color: selected ? "var(--purple-dark)" : "var(--text)" }}>{n}</span>
+                      <span style={{ fontSize: 11, fontWeight: 500, color: selected ? "var(--purple-dark)" : "var(--muted)", textAlign: "center", lineHeight: 1.2 }}>{RATING_LABELS[n]}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              {shownAnchor ? (
+                <div style={{ background: "#F0F1F3", borderRadius: 8, padding: "10px 12px", marginBottom: 12 }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: "var(--muted)" }}>{RATING_LABELS[currentScore]}: </span>
+                  <span style={{ fontSize: 12, color: "var(--muted)", lineHeight: 1.55 }}>{shownAnchor}</span>
+                </div>
+              ) : null}
+              <input
+                type="text"
+                value={comments[it]}
+                disabled={locked || busy}
+                placeholder="Add a comment (optional)"
+                onChange={(ev) => setComments({ ...comments, [it]: ev.target.value })}
+                style={{ width: "100%", background: "#fff", border: "1px solid #D9D3F5", borderRadius: 8 }}
+              />
             </div>
 
-            {shownAnchor ? (
-              <div style={{ background: "var(--purple-subtle)", borderRadius: 12, padding: "14px 16px", marginBottom: 14 }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: "var(--purple-dark)" }}>{RATING_LABELS[currentScore]}: </span>
-                <span style={{ fontSize: 13, color: "var(--text)", lineHeight: 1.65 }}>{shownAnchor}</span>
+            {!isEmployeeForm && empRating ? (
+              <div style={{ marginBottom: 14 }}>
+                <EmployeeRatingCard score={empRating.score || null} comment={empRating.comment || null} size="sm" />
+                {diff ? <div className="muted" style={{ fontSize: 12, marginTop: 6 }}>Different perspectives, worth discussing.</div> : null}
               </div>
             ) : null}
 
             {showManagerToEmployee && managerMap[it] ? (
-              <div style={{ background: "#F7F8FA", borderRadius: 12, padding: "12px 14px", marginBottom: 14 }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text)", marginBottom: 2 }}>
-                  Manager rating: {managerMap[it].score ? `${managerMap[it].score} · ${RATING_LABELS[managerMap[it].score]}` : "—"}
-                </div>
-                {managerMap[it].comment ? <div className="muted" style={{ fontSize: 13 }}>{managerMap[it].comment}</div> : <div className="muted" style={{ fontSize: 13 }}>No comment.</div>}
+              <div style={{ marginTop: 12 }}>
+                <ManagerRatingCard score={managerMap[it].score || null} comment={managerMap[it].comment || null} size="sm" />
               </div>
             ) : null}
-
-            <input
-              type="text"
-              value={comments[it]}
-              disabled={locked || busy}
-              placeholder="Add a comment (optional)"
-              onChange={(ev) => setComments({ ...comments, [it]: ev.target.value })}
-              style={{ width: "100%" }}
-            />
           </div>
         );
       })}
