@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { User } from "lucide-react";
 import {
   saveEmployeeDraftAction,
   submitReviewAction,
@@ -12,7 +13,7 @@ import {
   reopenReviewAction,
   closeReviewAction,
 } from "./actions";
-import { ManagerRatingCard } from "@/modules/performance/RatingBadges";
+import { EmployeeRatingCard, ManagerRatingCard } from "@/modules/performance/RatingBadges";
 
 const ITEMS = ["IMPACT", "QUALITY", "DELIVERY"] as const;
 type Item = (typeof ITEMS)[number];
@@ -23,6 +24,7 @@ const LABELS: Record<Item, string> = {
   DELIVERY: "Delivery Reliability",
 };
 const RATING_LABELS: Record<number, string> = { 1: "Poor", 2: "Base", 3: "Intermediate", 4: "Advanced", 5: "Rock Star" };
+
 interface ExistingRating {
   item: string;
   score: number;
@@ -136,55 +138,63 @@ export function ReviewForm(props: Props) {
         const empRating = employeeMap[it];
         const diff = !isEmployee && empRating && currentScore && empRating.score !== currentScore;
         return (
-          <div className="card" key={it}>
-            <div style={{ fontWeight: 600, marginBottom: 4 }}>{LABELS[it]}</div>
+          <div className="card" key={it} style={{ padding: "26px 28px", marginBottom: 18 }}>
+            <div style={{ fontSize: 17, fontWeight: 600, marginBottom: 16 }}>{LABELS[it]}</div>
+
+            <div style={{ border: "1px solid #D9D3F5", background: "#F7F5FD", borderRadius: 12, padding: 16, marginBottom: 14 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 10 }}>
+                <User size={12} color="var(--purple-dark)" strokeWidth={2.2} />
+                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "var(--purple-dark)" }}>{isEmployee ? "Your rating" : "Employee rating"}</span>
+              </div>
+              <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+                {[1, 2, 3, 4, 5].map((n) => {
+                  const selected = currentScore === n;
+                  return (
+                    <button
+                      key={n}
+                      type="button"
+                      disabled={locked || busy}
+                      onClick={() => setScores({ ...scores, [it]: n })}
+                      style={{
+                        flex: 1,
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: 4,
+                        padding: "12px 5px",
+                        borderRadius: 10,
+                        cursor: locked ? "default" : "pointer",
+                        transition: "all 0.18s ease",
+                        border: selected ? "1.5px solid var(--purple)" : "1px solid var(--border)",
+                        background: selected ? "var(--purple-subtle)" : "#fff",
+                        boxShadow: selected ? "0 4px 12px rgba(98,82,219,0.20)" : "none",
+                        transform: selected ? "translateY(-2px)" : "none",
+                        opacity: locked && !selected ? 0.5 : 1,
+                      }}
+                    >
+                      <span style={{ fontSize: 18, fontWeight: 700, color: selected ? "var(--purple-dark)" : "var(--text)" }}>{n}</span>
+                      <span style={{ fontSize: 11, fontWeight: 500, color: selected ? "var(--purple-dark)" : "var(--muted)", textAlign: "center", lineHeight: 1.2 }}>{RATING_LABELS[n]}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              <input
+                type="text"
+                value={comments[it]}
+                disabled={locked || busy}
+                placeholder="Add a comment (optional)"
+                onChange={(ev) => setComments({ ...comments, [it]: ev.target.value })}
+                style={{ width: "100%", background: "#fff", border: "1px solid #D9D3F5", borderRadius: 8 }}
+              />
+            </div>
+
             {!isEmployee && empRating ? (
-              <div className="muted" style={{ fontSize: 13, marginBottom: 8 }}>
-                Employee self-score: <strong>{empRating.score || "—"}</strong>
-                {empRating.comment ? ` · "${empRating.comment}"` : ""}
-                {diff ? <span className="chip status-awaiting" style={{ marginLeft: 8 }}>Differs from yours</span> : null}
+              <div style={{ marginBottom: 14 }}>
+                <EmployeeRatingCard score={empRating.score || null} comment={empRating.comment || null} size="sm" />
+                {diff ? <div className="muted" style={{ fontSize: 12, marginTop: 6 }}>Different perspectives, worth discussing.</div> : null}
               </div>
             ) : null}
-           <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-              {[1, 2, 3, 4, 5].map((n) => {
-                const selected = currentScore === n;
-                return (
-                  <button
-                    key={n}
-                    type="button"
-                    disabled={locked || busy}
-                    onClick={() => setScores({ ...scores, [it]: n })}
-                    style={{
-                      flex: 1,
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      gap: 4,
-                      padding: "14px 6px",
-                      borderRadius: 14,
-                      cursor: locked ? "default" : "pointer",
-                      transition: "all 0.18s ease",
-                      border: selected ? "1.5px solid var(--purple)" : "1px solid var(--border)",
-                      background: selected ? "var(--purple-subtle)" : "#fff",
-                      boxShadow: selected ? "0 4px 12px rgba(98,82,219,0.20)" : "none",
-                      transform: selected ? "translateY(-2px)" : "none",
-                      opacity: locked && !selected ? 0.5 : 1,
-                    }}
-                  >
-                    <span style={{ fontSize: 20, fontWeight: 700, color: selected ? "var(--purple-dark)" : "var(--text)" }}>{n}</span>
-                    <span style={{ fontSize: 11, fontWeight: 500, color: selected ? "var(--purple-dark)" : "var(--muted)", textAlign: "center", lineHeight: 1.2 }}>{RATING_LABELS[n]}</span>
-                  </button>
-                );
-              })}
-            </div>
-            <input
-              type="text"
-              value={comments[it]}
-              disabled={locked || busy}
-              placeholder="Comment (optional)"
-              onChange={(ev) => setComments({ ...comments, [it]: ev.target.value })}
-              style={{ width: "100%" }}
-            />
+
             {showManagerToEmployee && managerMap[it] ? (
               <div style={{ marginTop: 12 }}>
                 <ManagerRatingCard score={managerMap[it].score || null} comment={managerMap[it].comment || null} size="sm" />
