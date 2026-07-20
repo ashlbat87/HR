@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Lightbulb, Target, HeartHandshake, Users } from "lucide-react";
-import { EmployeeRatingCard } from "@/modules/performance/RatingBadges";
+import { EmployeeRatingCard, ManagerRatingCard } from "@/modules/performance/RatingBadges";
 import {
   saveEmployeeValuesDraftAction,
   saveManagerValuesDraftAction,
