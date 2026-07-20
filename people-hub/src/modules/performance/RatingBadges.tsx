@@ -60,10 +60,12 @@ export function EmployeeRatingCard({
 export function ManagerRatingCard({
   score,
   label,
+  comment,
   size = "md",
 }: {
   score?: number | null;
   label?: string;
+  comment?: string | null;
   size?: "sm" | "md";
 }) {
   const pad = size === "sm" ? "8px 12px" : "12px 16px";
@@ -75,6 +77,7 @@ export function ManagerRatingCard({
         flexDirection: "column",
         gap: 4,
         minWidth: size === "sm" ? 96 : 120,
+        maxWidth: comment ? "100%" : undefined,
         padding: pad,
         borderRadius: 12,
         background: "var(--purple)",
@@ -91,6 +94,9 @@ export function ManagerRatingCard({
         {score ? <span style={{ fontSize: num, fontWeight: 700, color: "#fff" }}>{score}</span> : null}
         <span style={{ fontSize: size === "sm" ? 12 : 13, fontWeight: 600, color: "#fff" }}>{labelFor(score, label)}</span>
       </div>
+      {comment ? (
+        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.88)", marginTop: 6, lineHeight: 1.5 }}>{comment}</div>
+      ) : null}
     </div>
   );
 }

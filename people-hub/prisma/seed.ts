@@ -5,6 +5,14 @@
 // Run with: npm run db:seed
 
 import { PrismaClient, Role, RatingGuideCategory, GuideKind } from "@prisma/client";
+import {
+  createQuarterlyReviewsForCycle,
+  saveEmployeeDraft,
+  submitReview,
+  managerOpen,
+  saveManagerDraft,
+  managerComplete,
+} from "../src/modules/performance/review-workflow";
 
 const prisma = new PrismaClient();
 
@@ -159,7 +167,7 @@ async function main() {
   }
 
   // One open cycle so the top bar shows something.
-  await prisma.reviewCycle.create({
+  const qCycle = await prisma.reviewCycle.create({
     data: { type: "QUARTERLY", label: "Q2 2026", isOpen: true },
   });
   // An open annual values cycle for Stage 3.
@@ -178,6 +186,43 @@ async function main() {
     ],
   });
 
+  // Drive one quarterly review to COMPLETE for Marco, with realistic ratings and
+  // comments on both sides, so the completed-review UI shows the full end state.
+  await createQuarterlyReviewsForCycle(qCycle.id, {
+    employeeId: (await prisma.employee.findUniqueOrThrow({ where: { workEmail: "wafa@example.test" }, include: { roleAssignments: true } })).id,
+    email: "wafa@example.test",
+    displayName: "Wafa Al-Sayed",
+    roles: ["EMPLOYEE", "HR_ADMIN"],
+  } as any);
+
+  const marco = await prisma.employee.findUniqueOrThrow({ where: { workEmail: "m.rossi@example.test" } });
+  const soojin = await prisma.employee.findUniqueOrThrow({ where: { workEmail: "s.park@example.test" } });
+  const marcoUser = { employeeId: marco.id, email: marco.workEmail, displayName: marco.displayName, roles: ["EMPLOYEE"] } as any;
+  const soojinUser = { employeeId: soojin.id, email: soojin.workEmail, displayName: soojin.displayName, roles: ["EMPLOYEE", "MANAGER"] } as any;
+
+  const marcoQ = await prisma.review.findFirstOrThrow({ where: { employeeId: marco.id, type: "QUARTERLY" } });
+
+  await saveEmployeeDraft(marcoQ.id, marcoUser, {
+    ratings: [
+      { item: "IMPACT", score: 4, comment: "Led the payments retry work that cut failed transactions noticeably." },
+      { item: "QUALITY", score: 4, comment: "Kept test coverage high; a couple of late review cycles to tighten." },
+      { item: "DELIVERY", score: 3, comment: "Shipped on time mostly; one dependency slipped a sprint." },
+    ],
+    okrContribution: "Contributed directly to the reliability OKR for Q2.",
+    developmentAction: "Take the lead on one cross-team initiative next quarter.",
+    employeeReflection: "A solid quarter with strong delivery on reliability.",
+  });
+  await submitReview(marcoQ.id, marcoUser);
+  await managerOpen(marcoQ.id, soojinUser);
+  await saveManagerDraft(marcoQ.id, soojinUser, {
+    ratings: [
+      { item: "IMPACT", score: 4, comment: "Real, measurable impact on reliability. Well done." },
+      { item: "QUALITY", score: 3, comment: "Good quality overall; would like earlier PRs to reduce late churn." },
+      { item: "DELIVERY", score: 3, comment: "Dependable. The slipped dependency was largely outside your control." },
+    ],
+    developmentAction: "Lead a cross-team initiative next quarter to build breadth.",
+  });
+  await managerComplete(marcoQ.id, soojinUser);
   console.log(`Seeded ${PEOPLE.length} employees, 6 rating guides, 1 cycle.`);
 }
 

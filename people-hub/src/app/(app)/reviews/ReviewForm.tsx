@@ -177,14 +177,6 @@ export function ReviewForm(props: Props) {
                 );
               })}
             </div>
-            {showManagerToEmployee && managerMap[it] ? (
-              <div style={{ marginTop: 12, marginBottom: 8 }}>
-                <ManagerRatingCard score={managerMap[it].score || null} size="sm" />
-                {managerMap[it].comment ? (
-                  <div className="muted" style={{ fontSize: 13, marginTop: 8 }}>Manager comment: &ldquo;{managerMap[it].comment}&rdquo;</div>
-                ) : null}
-              </div>
-            ) : null}
             <input
               type="text"
               value={comments[it]}
@@ -193,6 +185,11 @@ export function ReviewForm(props: Props) {
               onChange={(ev) => setComments({ ...comments, [it]: ev.target.value })}
               style={{ width: "100%" }}
             />
+            {showManagerToEmployee && managerMap[it] ? (
+              <div style={{ marginTop: 12 }}>
+                <ManagerRatingCard score={managerMap[it].score || null} comment={managerMap[it].comment || null} size="sm" />
+              </div>
+            ) : null}
           </div>
         );
       })}
