@@ -44,3 +44,26 @@ cannot tell them apart. True N/A labelling is deferred to this backlog item.
 When built: add an employee start date (additive), derive applicable quarters from it,
 and update the year-end display to show N/A for pre-joining quarters. Also useful for
 pro-rating, reporting, and onboarding views later.
+
+## "How performance works" employee guide — BACKLOG (surfaced during quarterly definitions work)
+Status: idea captured; NOT yet scoped or scheduled. Small, self-contained.
+Need: an in-product reference that explains the full performance process to all
+employees, so the cycle and expectations are clear in one place rather than tribal
+knowledge.
+Likely scope (to confirm when built): the annual cycle (Q1 to Q4 quarterlies, the
+annual values review, the year-end summary) and what each stage is for; the rating
+scale and label meanings (Poor, Base, Intermediate, Advanced, Rock Star); who rates
+whom; how self-assessment and manager assessment work together; and the core
+principles (performance and values are never blended; the manager rating is the
+official score).
+Open questions for when we build it:
+1. Static content vs HR-editable. Lean: static for the prototype; editable-by-HR is a
+   larger feature that could come later.
+2. A dedicated nav page ("How performance works") vs contextual help links on the
+   review screens. Lean: a dedicated nav page, with contextual links a possible later
+   addition.
+3. Much of the substance already exists in decisions and labels we have built (rating
+   labels, cycle structure, the never-blended principle), so this is more a
+   content-and-presentation task than a complex build.
+Note: no data-model impact expected; it surfaces existing information in one
+employee-friendly place.
