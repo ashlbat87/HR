@@ -18,6 +18,7 @@ import {
   saveManagerValuesDraft,
   managerCompleteValues,
 } from "../src/modules/performance/review-workflow";
+import { PERF_ANCHORS } from "./perf-anchors";
 
 const prisma = new PrismaClient();
 
@@ -149,7 +150,7 @@ async function main() {
             versionId: version.id,
             item,
             score,
-            text: `${cat} — ${item} — level ${score} (placeholder anchor)`,
+            text: PERF_ANCHORS[cat]?.[item]?.[score] ?? `${cat} — ${item} — level ${score} (placeholder anchor)`,
           },
         });
       }

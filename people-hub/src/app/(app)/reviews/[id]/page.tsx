@@ -67,13 +67,22 @@ export default async function ReviewDetailPage({
     yearEnd = await assembleYearEndData(review.employeeId);
   }
 
-  // For values reviews, load the current VALUES guide anchors to show inline.
+  // Load the relevant rating-guide anchors to show inline.
+  // Values: the single VALUES guide. Quarterly: the reviewed employee's department
+  // PERFORMANCE guide (chosen by their ratingGuideCategory).
   let anchors: Record<string, Record<number, string>> = {};
-  if (isValues) {
-    const guide = await prisma.ratingGuide.findFirst({
-      where: { kind: "VALUES" },
-      include: { versions: { orderBy: { version: "desc" }, take: 1, include: { anchors: true } } },
-    });
+  {
+    const guide = isValues
+      ? await prisma.ratingGuide.findFirst({
+          where: { kind: "VALUES" },
+          include: { versions: { orderBy: { version: "desc" }, take: 1, include: { anchors: true } } },
+        })
+      : review.employee.ratingGuideCategory
+      ? await prisma.ratingGuide.findFirst({
+          where: { kind: "PERFORMANCE", category: review.employee.ratingGuideCategory },
+          include: { versions: { orderBy: { version: "desc" }, take: 1, include: { anchors: true } } },
+        })
+      : null;
     const version = guide?.versions[0];
     if (version) {
       for (const a of version.anchors) {
@@ -150,6 +159,7 @@ export default async function ReviewDetailPage({
             employeeReflection={review.employeeReflection ?? ""}
             quarterlyScore={fresh?.quarterlyScore ?? review.quarterlyScore}
             canReopen={isManager || isHR(user)}
+            anchors={anchors}
           />
         </>
       )}

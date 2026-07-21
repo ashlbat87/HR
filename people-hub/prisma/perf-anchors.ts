@@ -1,0 +1,117 @@
+export const PERF_ANCHORS: Record<string, Record<string, Record<number, string>>> = {
+  ENGINEERING: {
+    IMPACT: {
+      1: "Made minimal contribution to quarterly OKRs. Work was frequently misaligned with engineering priorities or required significant redirection. Business impact is unclear.",
+      2: "Delivered some value but contribution to the team's OKRs was modest. Impact was present but did not significantly advance engineering or business goals. Needed guidance to stay aligned.",
+      3: "Delivered work that clearly supported OKR delivery. Contributions were solid, aligned with priorities, and had a positive impact on the function's progress. A dependable contributor.",
+      4: "Consistently drove strong progress on quarterly OKRs. Showed initiative, removed blockers proactively, and played a key role in moving the team's goals forward. Others noticed and relied on their contribution.",
+      5: "Delivered exceptional, high-impact contributions that significantly accelerated the product's OKR progress. Identified critical opportunities or risks, resolved major blockers, and raised the standard for the team or function.",
+    },
+    QUALITY: {
+      1: "Output frequently falls below expectations — often incomplete, inaccurate, or requiring significant rework. Creates additional burden for the team and slows delivery.",
+      2: "Meets base expectations but output quality is inconsistent. Work regularly requires revisions, corrections, or additional guidance before it can be relied upon.",
+      3: "Produces good-quality work that is clear, complete, and fit for purpose. Requires minimal revision and supports the team's goals effectively. Meets the expected standard for the role.",
+      4: "Consistently delivers high-quality, well-structured work. Output is reliable, complete, and sets a good standard. Rarely requires rework and accelerates the team's delivery.",
+      5: "Delivers exceptionally high-quality work that elevates the standard of the team or function. Output is thorough, well-considered, and requires minimal or no rework. Actively improves quality practices for others.",
+    },
+    DELIVERY: {
+      1: "Frequently misses commitments. Estimates are unreliable and rarely recalibrated. Requires regular follow-up to understand status. OKR delivery is jeopardised by unpredictability.",
+      2: "Meets some commitments but delivery is inconsistent. Risks and delays are sometimes communicated late. Requires prompting to provide status updates.",
+      3: "Consistently meets commitments. Communicates proactively when timelines are at risk. Estimates are generally reliable and refined over time. The team can plan around their work.",
+      4: "Delivers on commitments consistently and ahead of expectation. Anticipates blockers early, communicates proactively, and keeps the team moving without disruption. Others can depend on them.",
+      5: "Sets the standard for delivery reliability. Commitments are treated as guarantees. Proactively unblocks others, anticipates risks well in advance, and elevates the predictability of the entire team.",
+    },
+  },
+  SALES_COMMERCIAL: {
+    IMPACT: {
+      1: "Minimal contribution to revenue targets or pipeline. Activity was misaligned with quarterly priorities or required frequent redirection from management.",
+      2: "Some commercial contribution but fell meaningfully short of targets. Activity was present but did not significantly advance the team's OKRs this quarter.",
+      3: "Delivered against quarterly targets. Contributions were aligned with commercial priorities and had a clear positive impact on revenue or pipeline progression and OKRs",
+      4: "Consistently exceeded targets and drove strong commercial progress. Proactively identified and advanced high-value opportunities. Played a key role in the team's overall performance and achievement of OKRs",
+      5: "Delivered exceptional commercial impact — significantly exceeded targets, opened high-value opportunities, or made contributions to OKRs that materially changed the business trajectory this quarter.",
+    },
+    QUALITY: {
+      1: "Commercial work is frequently incomplete or poorly executed. Outputs regularly require significant rework. Customer or internal feedback highlights recurring quality issues.",
+      2: "Meets base expectations but quality varies. Qualification rigour and output standards are inconsistent and require guidance or correction.",
+      3: "Produces well-qualified pipeline and professionally executed work. Outputs are clear, accurate, and complete. Customer interactions build trust and reflect well on the business.",
+      4: "Consistently delivers high-quality commercial work. Opportunities are well-qualified, outputs are accurate and polished, and customer interactions are professional and effective. Rarely requires rework.",
+      5: "Sets the standard for commercial quality. Work is exemplary — deals are well-structured, customer interactions are excellent, and outputs create lasting commercial relationships and referrals.",
+    },
+    DELIVERY: {
+      1: "Forecast accuracy is poor. Regularly surprises the business with missed commitments or late changes. Follow-through on agreed activities is unreliable.",
+      2: "Forecast accuracy is developing but inconsistent. Risks are sometimes surfaced late. Commitments are met occasionally but not predictably.",
+      3: "Forecast is generally reliable. Communicates risks and changes proactively. Quarterly commitments are met consistently and the business can plan around their contribution.",
+      4: "Highly reliable. Flags risks early, adjusts plans proactively, and delivers on commitments with high consistency. Leadership can depend on their number and their word.",
+      5: "Forecast and commitments are treated as guarantees. Delivers quarter after quarter with exceptional accuracy. Proactively reshapes plans to protect commitments and helps others improve their reliability.",
+    },
+  },
+  PRODUCT: {
+    IMPACT: {
+      1: "Work delivered had minimal measurable impact on OKRs, users or business metrics. Priorities were frequently misaligned or required significant redirection.",
+      2: "Some product value delivered but contribution to OKRs was modest. Impact on user outcomes or business metrics was limited in scope or depth.",
+      3: "Delivered product work that clearly supported OKR progress. Contributions were aligned with user and business priorities and had a measurable positive impact.",
+      4: "Consistently drove strong progress towards product OKRs. Took initiative on high-impact work, used insight and data effectively, and played a key role in advancing the product strategy.",
+      5: "Delivered exceptional product impact — shipped initiatives or made decisions that significantly moved, OKRs, key metrics, reshaped user behaviour, or created a step-change in product or business value.",
+    },
+    QUALITY: {
+      1: "Product outputs are frequently unclear, incomplete, or poorly thought through. Other teams regularly require significant clarification before work can begin.",
+      2: "Meets base expectations but output quality is inconsistent. Work lacks depth or rigour at times and requires revision before others can act on it.",
+      3: "Produces clear, well-structured product outputs. Decisions are well-reasoned and documented. Other teams can move forward confidently from their work with minimal clarification.",
+      4: "Delivers high-quality product work consistently. Outputs are thorough, well-reasoned, and grounded in data and user insight. Edge cases are considered and decisions are documented.",
+      5: "Sets the standard for product quality. Work is exemplary — deeply considered, clearly articulated, and strategically aligned. Elevates the craft and output of the entire product team.",
+    },
+    DELIVERY: {
+      1: "Roadmap commitments are frequently missed or significantly re-scoped late. Stakeholders are regularly surprised by delays. Delivery predictability is a recurring concern.",
+      2: "Delivers some work on time but scope changes and delays are common. Risk communication to stakeholders is reactive rather than proactive.",
+      3: "Roadmap commitments are generally met. Communicates scope risks and timeline changes proactively. Stakeholders have a clear and reliable picture of what to expect each quarter.",
+      4: "Consistently delivers on roadmap commitments. Manages scope and stakeholder expectations with skill. Changes are flagged early with clear context and alternatives.",
+      5: "Roadmap delivery is exemplary. Commitments are protected, trade-offs are managed transparently, and stakeholders trust their word entirely. Sets the standard for product predictability.",
+    },
+  },
+  OPERATIONS: {
+    IMPACT: {
+      1: "Operational work had minimal impact on business efficiency or OKR progress. Work was misaligned with priorities or required frequent redirection.",
+      2: "Some operational value delivered but impact on business processes or cross-functional outcomes was limited in scope.",
+      3: "Delivered work that clearly supported OKR delivery. Contributions improved processes, reduced friction, or enabled other teams to work more effectively.",
+      4: "Consistently drove strong operational outcomes. Proactively identified inefficiencies and implemented improvements that had a clear, measurable positive impact on the business.",
+      5: "Delivered exceptional operational impact — transformed processes, resolved systemic issues, or significantly improved efficiency in ways that had meaningful business-wide consequences.",
+    },
+    QUALITY: {
+      1: "Operational outputs are frequently incomplete, inaccurate, or require significant rework. Errors create downstream problems for other teams.",
+      2: "Meets base expectations but output quality is inconsistent. Work requires regular corrections or updates before it can be used effectively.",
+      3: "Produces accurate, well-structured operational outputs. Documentation and reporting are clear and reliable, enabling other teams to act with confidence.",
+      4: "Delivers high-quality operational work consistently. Outputs are well-designed, accurate, and require minimal revision. Sets a strong standard for the function.",
+      5: "Delivers exceptional operational quality. Work is robust, scalable, and strategically designed. Elevates the standard of operational practice across the function or business.",
+    },
+    DELIVERY: {
+      1: "Regularly misses operational deadlines or SLAs. Cross-functional dependencies are poorly managed and teams are frequently surprised by delays or errors.",
+      2: "Meets some deadlines but delivery is inconsistent. Risks to timelines are communicated reactively rather than proactively.",
+      3: "Consistently meets operational commitments and SLAs. Communicates delivery risks proactively and manages cross-functional dependencies well.",
+      4: "Highly reliable. Anticipates dependencies and risks early, keeps all stakeholders informed, and consistently delivers without disruption to other teams.",
+      5: "Sets the standard for operational reliability. SLAs and commitments are treated as guarantees. Proactively strengthens processes to protect delivery and enable the wider organisation.",
+    },
+  },
+  SUPPORT_FUNCTIONS: {
+    IMPACT: {
+      1: "Contribution to business priorities and OKRs is unclear or minimal. Work is largely reactive and does not meaningfully advance the goals of the teams or functions supported.",
+      2: "Some contribution to business priorities and OKRs but impact is modest. Support provided is adequate but rarely goes beyond the immediate ask.",
+      3: "Delivers work that clearly enables other teams and supports business OKRs. Contributions are proactive, well-timed, and have a positive impact on the functions served.",
+      4: "Consistently drives strong impact. Anticipates the needs of business partners, takes ownership of outcomes, and plays a key enabling role in OKR delivery across their function or products they support.",
+      5: "Delivers exceptional impact — fundamentally improves how the business operates, solves systemic problems, or creates significant organisation-wide value through their functional expertise and contribution to OKRs",
+    },
+    QUALITY: {
+      1: "Work product is frequently incomplete, inaccurate, or requires significant rework. Errors create problems for business partners or downstream processes.",
+      2: "Meets base expectations but output quality varies. Work requires regular corrections or guidance before it can be used effectively.",
+      3: "Produces accurate, well-structured work that business partners can rely on. Output is clear, complete, and requires minimal revision.",
+      4: "Delivers consistently high-quality work. Output is thorough, well-considered, and sets a strong standard for the function.",
+      5: "Delivers exceptional work that elevates the standard of the entire function. Output is strategically valuable, robust, and widely relied upon across the organisation.",
+    },
+    DELIVERY: {
+      1: "Regularly misses agreed deadlines or response commitments. Business partners frequently need to chase for outputs. Reliability issues create friction for the teams depending on them.",
+      2: "Meets some commitments but delivery is inconsistent. Response times and deadline adherence vary and require prompting.",
+      3: "Consistently meets agreed deadlines and response commitments. Business partners have a clear and reliable expectation of what to expect and when.",
+      4: "Highly reliable. Delivers on commitments consistently and communicates proactively when timelines are at risk. Business partners can plan confidently around their work.",
+      5: "Delivery is exemplary. Commitments are treated as guarantees. Proactively manages workload and expectations so no business partner is ever left waiting or surprised.",
+    },
+  },
+};

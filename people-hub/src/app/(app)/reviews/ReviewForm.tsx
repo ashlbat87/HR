@@ -23,6 +23,11 @@ const LABELS: Record<Item, string> = {
   QUALITY: "Quality",
   DELIVERY: "Delivery Reliability",
 };
+const DEFINITIONS: Record<Item, string> = {
+  IMPACT: "The measurable contribution to business outcomes and quarterly OKRs.",
+  QUALITY: "The standard, accuracy, and completeness of work delivered.",
+  DELIVERY: "The consistency with which commitments are met and momentum is maintained.",
+};
 const RATING_LABELS: Record<number, string> = { 1: "Poor", 2: "Base", 3: "Intermediate", 4: "Advanced", 5: "Rock Star" };
 
 interface ExistingRating {
@@ -42,6 +47,7 @@ interface Props {
   employeeReflection: string;
   quarterlyScore: number | null;
   canReopen: boolean;
+  anchors: Record<string, Record<number, string>>;
 }
 
 function ratingMap(rs: ExistingRating[]) {
@@ -139,7 +145,8 @@ export function ReviewForm(props: Props) {
         const diff = !isEmployee && empRating && currentScore && empRating.score !== currentScore;
         return (
           <div className="card" key={it} style={{ padding: "26px 28px", marginBottom: 18 }}>
-            <div style={{ fontSize: 17, fontWeight: 600, marginBottom: 16 }}>{LABELS[it]}</div>
+            <div style={{ fontSize: 17, fontWeight: 600, marginBottom: 3 }}>{LABELS[it]}</div>
+            <div className="muted" style={{ fontSize: 13, lineHeight: 1.55, marginBottom: 16 }}>{DEFINITIONS[it]}</div>
 
             <div style={{ border: "1px solid #D9D3F5", background: "#F7F5FD", borderRadius: 12, padding: 16, marginBottom: 14 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 10 }}>
@@ -178,6 +185,12 @@ export function ReviewForm(props: Props) {
                   );
                 })}
               </div>
+              {props.anchors[it]?.[currentScore] ? (
+                <div style={{ background: "#F0F1F3", borderRadius: 8, padding: "10px 12px", marginBottom: 12 }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: "var(--muted)" }}>{RATING_LABELS[currentScore]}: </span>
+                  <span style={{ fontSize: 12, color: "var(--muted)", lineHeight: 1.55 }}>{props.anchors[it][currentScore]}</span>
+                </div>
+              ) : null}
               <input
                 type="text"
                 value={comments[it]}
