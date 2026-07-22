@@ -6,7 +6,7 @@ import { prisma } from "@/shared/lib/prisma";
 import { recordAudit } from "@/core/audit";
 import type { AuthUser } from "@/core/auth";
 import { isHR } from "@/core/access";
-import type { ReviewStatus, ReviewEventType, RaterSide } from "@prisma/client";
+import type { ReviewStatus, ReviewEventType, RaterSide, ReviewType } from "@prisma/client";
 
 export const QUARTERLY_ITEMS = ["IMPACT", "QUALITY", "DELIVERY"] as const;
 export type QuarterlyItem = (typeof QUARTERLY_ITEMS)[number];
@@ -618,4 +618,80 @@ export async function reopenArchivedYearEnd(reviewId: string, actor: AuthUser, r
   assertTransition(review.status, "REOPENED");
   await prisma.review.update({ where: { id: reviewId }, data: { status: "REOPENED" } });
   await recordEventAndMaybeAudit(reviewId, "REOPENED", actor, reason);
+}
+// ---- Review Period management (v0.6). HR-only governance actions. ----
+
+export async function createReviewPeriod(label: string, actor: AuthUser): Promise<{ id: string }> {
+  if (!isHR(actor)) throw new WorkflowError("Only HR can create a review period.");
+  if (!label?.trim()) throw new WorkflowError("A label is required for the review period.");
+  const anyCurrent = await prisma.reviewPeriod.findFirst({ where: { isCurrent: true } });
+  const period = await prisma.reviewPeriod.create({
+    data: { label: label.trim(), isCurrent: !anyCurrent },
+  });
+  await recordAudit({ actorEmail: actor.email, action: "period.create", entityType: "ReviewPeriod", entityId: period.id, detail: "label=" + period.label });
+  return { id: period.id };
+}
+
+export async function setCurrentPeriod(periodId: string, actor: AuthUser): Promise<void> {
+  if (!isHR(actor)) throw new WorkflowError("Only HR can set the current review period.");
+  const period = await prisma.reviewPeriod.findUnique({ where: { id: periodId } });
+  if (!period) throw new WorkflowError("Review period not found.");
+  if (period.status === "COMPLETED") throw new WorkflowError("A completed period cannot be made current.");
+  await prisma.$transaction([
+    prisma.reviewPeriod.updateMany({ where: { isCurrent: true }, data: { isCurrent: false } }),
+    prisma.reviewPeriod.update({ where: { id: periodId }, data: { isCurrent: true } }),
+  ]);
+  await recordAudit({ actorEmail: actor.email, action: "period.set_current", entityType: "ReviewPeriod", entityId: periodId, detail: "label=" + period.label });
+}
+
+export async function openCycleInPeriod(
+  periodId: string,
+  type: ReviewType,
+  label: string,
+  actor: AuthUser,
+  deadlines?: { employeeDeadline?: Date | null; managerDeadline?: Date | null }
+): Promise<{ id: string }> {
+  if (!isHR(actor)) throw new WorkflowError("Only HR can open a cycle.");
+  if (!label?.trim()) throw new WorkflowError("A label is required for the cycle.");
+  const period = await prisma.reviewPeriod.findUnique({ where: { id: periodId } });
+  if (!period) throw new WorkflowError("Review period not found.");
+  if (period.status === "COMPLETED") throw new WorkflowError("Cannot open a cycle in a completed period.");
+  const cycle = await prisma.reviewCycle.create({
+    data: {
+      type,
+      label: label.trim(),
+      isOpen: true,
+      periodId,
+      employeeDeadline: deadlines?.employeeDeadline ?? null,
+      managerDeadline: deadlines?.managerDeadline ?? null,
+    },
+  });
+  await recordAudit({ actorEmail: actor.email, action: "cycle.open_in_period", entityType: "ReviewCycle", entityId: cycle.id, detail: "type=" + type + ", period=" + period.label });
+  return { id: cycle.id };
+}
+
+export async function completeReviewPeriod(
+  periodId: string,
+  actor: AuthUser
+): Promise<{ ok: true } | { ok: false; outstanding: { reviewId: string; employeeId: string; type: ReviewType; status: ReviewStatus }[] }> {
+  if (!isHR(actor)) throw new WorkflowError("Only HR can complete a review period.");
+  const period = await prisma.reviewPeriod.findUnique({ where: { id: periodId }, include: { cycles: true } });
+  if (!period) throw new WorkflowError("Review period not found.");
+  if (period.status === "COMPLETED") throw new WorkflowError("This period is already completed.");
+  const cycleIds = period.cycles.map((c) => c.id);
+  const outstanding = cycleIds.length
+    ? await prisma.review.findMany({
+        where: { cycleId: { in: cycleIds }, status: { notIn: ["COMPLETE", "ARCHIVED"] } },
+        select: { id: true, employeeId: true, type: true, status: true },
+      })
+    : [];
+  if (outstanding.length > 0) {
+    return { ok: false, outstanding: outstanding.map((r) => ({ reviewId: r.id, employeeId: r.employeeId, type: r.type, status: r.status })) };
+  }
+  await prisma.$transaction([
+    prisma.reviewPeriod.update({ where: { id: periodId }, data: { status: "COMPLETED", isCurrent: false, closedAt: new Date() } }),
+    prisma.reviewCycle.updateMany({ where: { periodId }, data: { isOpen: false } }),
+  ]);
+  await recordAudit({ actorEmail: actor.email, action: "period.complete", entityType: "ReviewPeriod", entityId: periodId, detail: "label=" + period.label + ", cycles=" + cycleIds.length });
+  return { ok: true };
 }
