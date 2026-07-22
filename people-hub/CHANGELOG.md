@@ -1,3 +1,22 @@
+## [0.5.1] — Review Experience & Rating Design System (COMPLETE)
+Point release on top of v0.5. Refines the review experience and introduces the rating
+design system across the existing review features. Full record: docs/STAGE5_v0_5_1_ACCEPTANCE.md.
+### Added
+- Annual Values premium redesign: value icons, real behavioural anchors and criterion definitions, official rating labels.
+- Real seeded rating-guide content: the VALUES guide plus five department PERFORMANCE guides (75 department-specific anchors from the master spreadsheet).
+- Rating identity design system (EmployeeRatingCard, ManagerRatingCard, RatingComparison) with optional comments; documented in docs/DESIGN_SYSTEM_ratings.md.
+- Grouped "Your rating" / "Employee rating" unit applied consistently on the quarterly and values forms.
+- Quarterly form: shared criterion definitions (Impact, Quality, Delivery) plus the selected level's real department anchor, department-aware.
+- Standalone HR Review administration screen; personal reviews page made personal-only.
+- Seed drives one employee's quarterly and values reviews to COMPLETE with realistic ratings and comments.
+### Fixed
+- My Reviews categorisation: personal and team reviews no longer conflated.
+### Decisions
+- Point release (no roadmap renumber). Employee selection light purple; manager rating bold-purple card with comment folded in. Buttons stay light-selected. Definitions hardcoded (shared); anchors seeded (department-specific). Reset = reopen; no data-wipe.
+### Verification
+- Stage 2 6/6; Stage 3 6/6; Stage 4 9/9 (all re-run post-restructure, now seed-independent); typecheck clean. Prototype release; fictional data only.
+### Deferred
+- "How performance works" employee guide (backlog); year-end excluded from the scoring-button pattern by design; annual-score label a future policy decision.
 ## [0.5] — Stage 4 / Release v0.5: Year-End Summary (COMPLETE)
 
 Year-End Summary delivered and verified. A per-employee YEAR_END review assembles the

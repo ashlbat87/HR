@@ -65,3 +65,53 @@
 - **Prototype release:** fictional data, mock auth. No real data.
 
 ---
+
+## Stage 4 / Release v0.5 (Year-End Summary) — COMPLETE and ACCEPTED
+
+- **Status:** Complete and accepted.
+- **Approved by:** Ash (Head of People).
+- **Date:** 22 July 2026.
+- **Verification:** Stage 4 acceptance harness 9/9; Stage 3 regression 6/6; Stage 2
+  regression 6/6; typecheck clean; manual walk-through across employee, manager, and
+  archived states. Harnesses since made seed-independent and re-run green.
+- **Delivered:** per-employee YEAR_END review assembling the year's quarterly and
+  values results; quarter-by-quarter journey; Annual Performance Score (mean of
+  completed quarters, numeric only, N-of-4 basis); the two year-end scores side by
+  side, never blended; four narrative fields; electronic acknowledgement to a
+  read-only ARCHIVED state with HR-only reopen; flagship conversation-guided screen.
+  Also: CEO and full reporting hierarchy; restructured reviews list.
+- **Decisions (approved):** mandatory narrative (employee self-assessment; manager
+  assessment + development plan; areas for growth optional); values complete before
+  year-end completion; one HR-created YEAR_END review per annual cycle; annual score
+  numeric only, no label stored (labels a future policy decision).
+- **Schema (additive):** Review gains annualPerformanceScore and four narrative fields;
+  ReviewStatus gains ARCHIVED; ReviewEventType gains ARCHIVED.
+- **Prototype release:** fictional data, mock auth. No real data.
+
+---
+
+## Stage 5 (design) / Release v0.5.1 (Review Experience & Rating Design System) — COMPLETE and ACCEPTED
+
+- **Status:** Complete and accepted. Point release on top of v0.5.
+- **Approved by:** Ash (Head of People).
+- **Date:** 22 July 2026.
+- **Verification:** Stage 2 acceptance 6/6; Stage 3 acceptance 6/6; Stage 4 acceptance
+  9/9 — all re-run after the review-form restructuring and refactored to be
+  seed-independent (workflow subject Petra Novak; strangers pinned to unrelated
+  employees). Typecheck clean. Full record: docs/STAGE5_v0_5_1_ACCEPTANCE.md.
+- **Delivered:** Annual Values premium redesign (icons, real anchors, definitions,
+  official labels); real seeded rating-guide content (VALUES guide + five department
+  PERFORMANCE guides, 75 anchors); rating identity design system (EmployeeRatingCard,
+  ManagerRatingCard, RatingComparison) documented in docs/DESIGN_SYSTEM_ratings.md;
+  grouped "Your rating"/"Employee rating" unit applied consistently across quarterly
+  and values; quarterly criterion definitions and department-aware anchors; standalone
+  HR Review administration screen; My Reviews categorisation fix; seed populates real
+  completed reviews.
+- **Decisions (approved):** point release (no roadmap renumber); employee selection
+  light purple, manager the bold-purple card with comment folded in; scoring buttons
+  stay light-selected; definitions hardcoded (shared), anchors seeded (department-
+  specific); reset satisfied by reopen, no data-wipe (PDPL/SAMA retention).
+- **Not included (deliberately):** "How performance works" employee guide (backlog);
+  year-end excluded from the scoring-button pattern by design; annual-score descriptive
+  label a future policy decision.
+- **Prototype release:** fictional data, mock auth. No real data.
