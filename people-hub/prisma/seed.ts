@@ -172,16 +172,20 @@ async function main() {
     }
   }
 
+  // Default review period; all cycles below are tied to it.
+  const period = await prisma.reviewPeriod.create({
+    data: { label: "2026", isCurrent: true },
+  });
   // One open cycle so the top bar shows something.
   const qCycle = await prisma.reviewCycle.create({
-    data: { type: "QUARTERLY", label: "Q2 2026", isOpen: true },
+    data: { type: "QUARTERLY", label: "Q2 2026", isOpen: true, periodId: period.id },
   });
   // An open annual values cycle for Stage 3.
   const vCycle = await prisma.reviewCycle.create({
-    data: { type: "ANNUAL_VALUES", label: "Values 2026", isOpen: true },
+    data: { type: "ANNUAL_VALUES", label: "Values 2026", isOpen: true, periodId: period.id },
   });
   await prisma.reviewCycle.create({
-    data: { type: "YEAR_END", label: "Year-End 2026", isOpen: true },
+    data: { type: "YEAR_END", label: "Year-End 2026", isOpen: true, periodId: period.id },
   });
   // A couple of placeholder notifications for the HR admin.
   const wafa = await prisma.employee.findUnique({ where: { workEmail: "wafa@example.test" } });

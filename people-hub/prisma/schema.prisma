@@ -208,14 +208,31 @@ enum ReviewStatus {
 }
 
 model ReviewCycle {
-  id               String     @id @default(cuid())
+  id               String        @id @default(cuid())
   type             ReviewType
   label            String // e.g. "Q2 2026"
   employeeDeadline DateTime?
   managerDeadline  DateTime?
-  isOpen           Boolean    @default(false)
+  isOpen           Boolean       @default(false)
+  periodId         String?
+  period           ReviewPeriod? @relation(fields: [periodId], references: [id])
   reviews          Review[]
-  createdAt        DateTime   @default(now())
+  createdAt        DateTime      @default(now())
+}
+
+enum PeriodStatus {
+  ACTIVE
+  COMPLETED
+}
+
+model ReviewPeriod {
+  id        String        @id @default(cuid())
+  label     String // e.g. "2026" — HR-named review period
+  status    PeriodStatus  @default(ACTIVE)
+  isCurrent Boolean       @default(false)
+  cycles    ReviewCycle[]
+  createdAt DateTime      @default(now())
+  closedAt  DateTime?
 }
 
 model Review {
