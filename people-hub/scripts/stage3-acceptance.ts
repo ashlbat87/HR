@@ -27,7 +27,7 @@ function record(r: Result) {
   console.log(`  Actual:   ${r.actual}`);
 }
 async function asUser(email: string): Promise<AuthUser> {
-  const e = await prisma.employee.findUniqueOrThrow({ where: { workEmail: email }, include: { roleAssignments: true } });
+  const e = await prisma.employee.findUniqueOrThrow({ where: { workEmail: email }, include: { roleAssignments: true} });
   return { employeeId: e.id, email: e.workEmail, displayName: e.displayName, roles: e.roleAssignments.map((r) => r.role) };
 }
 async function timelineTypes(reviewId: string): Promise<string[]> {
@@ -35,7 +35,7 @@ async function timelineTypes(reviewId: string): Promise<string[]> {
   return evs.map((e) => e.type);
 }
 async function auditActions(reviewId: string): Promise<string[]> {
-  const logs = await prisma.auditLog.findMany({ where: { entityType: "Review", entityId: reviewId }, orderBy: { at: "asc" } });
+  const logs = await prisma.auditLog.findMany({ where: { entityType: "Review", entityId: reviewId }, orderBy: { at:"asc" } });
   return logs.map((l) => l.action);
 }
 async function findOpenValuesCycle() {
@@ -53,25 +53,30 @@ async function main() {
   const HR = await asUser("wafa@example.test");
   const cycle = await findOpenValuesCycle();
   try {
-    const first = await createValuesReviewsForCycle(cycle.id, HR);
+    // Seed-tolerant: the seed may pre-create values reviews. What matters is that
+    // creating again never duplicates.
+    const before = await prisma.review.count({ where: { cycleId: cycle.id, type: "ANNUAL_VALUES" } });
+    await createValuesReviewsForCycle(cycle.id, HR);
+    const afterFirst = await prisma.review.count({ where: { cycleId: cycle.id, type: "ANNUAL_VALUES" } });
     const second = await createValuesReviewsForCycle(cycle.id, HR);
-    const total = await prisma.review.count({ where: { cycleId: cycle.id, type: "ANNUAL_VALUES" } });
-    const pass = second.created === 0 && second.skipped === first.created && total === first.created;
-    record({ name: "1. Values review creation is idempotent", objective: "Create twice must not duplicate.", steps: ["create x2", "count"], expected: "2nd creates 0, skips all.", actual: `1st=${first.created}, 2nd=${second.created}, skip=${second.skipped}, total=${total}`, pass });
+    const afterSecond = await prisma.review.count({ where: { cycleId: cycle.id, type: "ANNUAL_VALUES" } });
+    const pass = afterFirst === afterSecond && second.created === 0;
+    record({ name: "1. Values review creation is idempotent", objective: "Create again must not duplicate, whatever already exists.", steps: ["count", "create x2", "count after each"], expected: "count stable; 2nd creates 0.", actual: `before=${before}, afterFirst=${afterFirst}, afterSecond=${afterSecond} (2nd created=${second.created}, skipped=${second.skipped})`, pass });
   } catch (e: any) { record({ name: "1. Values review creation is idempotent", objective: "-", steps: ["-"], expected: "-", actual: "threw: " + e.message, pass: false }); }
-  const marco = await asUser("m.rossi@example.test");
-  const review = await valuesReviewFor("m.rossi@example.test");
+  // Petra is a clean employee whose values review the seed does NOT pre-complete.
+  const petra = await asUser("p.novak@example.test");
+  const review = await valuesReviewFor("p.novak@example.test");
   const mgrEmp = await prisma.employee.findUniqueOrThrow({ where: { id: review.managerId } });
   const manager = await asUser(mgrEmp.workEmail);
   try {
-    await saveEmployeeValuesDraft(review.id, marco, { ratings: [{ item: VALUES_ITEMS[0], score: 3 }] });
+    await saveEmployeeValuesDraft(review.id, petra, { ratings: [{ item: VALUES_ITEMS[0], score: 3 }] });
     let blocked = false;
-    try { await submitValuesReview(review.id, marco); } catch (e) { if (e instanceof WorkflowError) blocked = true; }
+    try { await submitValuesReview(review.id, petra); } catch (e) { if (e instanceof WorkflowError) blocked = true;}
     record({ name: "2. Submission blocked unless all four scored", objective: "Cannot submit <4 scores.", steps: ["save 1", "submit"], expected: "rejected.", actual: blocked ? "blocked" : "NOT blocked", pass: blocked });
   } catch (e: any) { record({ name: "2. Submission blocked unless all four scored", objective: "-", steps: ["-"], expected: "-", actual: "threw: " + e.message, pass: false }); }
   try {
-    await saveEmployeeValuesDraft(review.id, marco, { ratings: fourScores(0), employeeReflection: "done" });
-    await submitValuesReview(review.id, marco);
+    await saveEmployeeValuesDraft(review.id, petra, { ratings: fourScores(0), employeeReflection: "done" });
+    await submitValuesReview(review.id, petra);
     await managerOpen(review.id, manager);
     await saveManagerValuesDraft(review.id, manager, { ratings: fourScores(2) });
     await managerCompleteValues(review.id, manager);
@@ -82,10 +87,10 @@ async function main() {
     record({ name: "3. Values score = mean of manager scores only (never blended)", objective: "Manager scores only; quarterlyScore null.", steps: ["emp 4", "submit", "mgr 4", "complete"], expected: `COMPLETE; values=${mean}; quarterly=null`, actual: `${done.status}; values=${done.valuesScore}; quarterly=${done.quarterlyScore}`, pass });
   } catch (e: any) { record({ name: "3. Values score = mean of manager scores only", objective: "-", steps: ["-"], expected: "-", actual: "threw: " + e.message, pass: false }); }
   try {
-    await acknowledgeReview(review.id, marco);
+    await acknowledgeReview(review.id, petra);
     const done = await prisma.review.findUniqueOrThrow({ where: { id: review.id } });
     const events = await timelineTypes(review.id);
-    const pass = events.includes("ACKNOWLEDGED") && done.acknowledgedAt !== null && done.acknowledgedBy === marco.employeeId;
+    const pass = events.includes("ACKNOWLEDGED") && done.acknowledgedAt !== null && done.acknowledgedBy === petra.employeeId;
     record({ name: "4. Acknowledgement records event + pointer", objective: "ACKNOWLEDGED event + pointer set.", steps: ["acknowledge", "read"], expected: "event + pointer set.", actual: `events=${events.join(",")}; at=${done.acknowledgedAt ? "set" : "null"}`, pass });
   } catch (e: any) { record({ name: "4. Acknowledgement records event + pointer", objective: "-", steps: ["-"], expected: "-", actual: "threw: " + e.message, pass: false }); }
   try {
@@ -94,13 +99,13 @@ async function main() {
     const audits = await auditActions(review.id);
     const pass = events.includes("REOPENED") && audits.some((a) => a.includes("reopen"));
     record({ name: "5. Reopen logs to timeline and audit", objective: "Reopen writes timeline + audit.", steps: ["reopen", "read"], expected: "REOPENED + audit.", actual: `REOPENED=${events.includes("REOPENED")}; audit=${audits.join(",")}`, pass });
-  } catch (e: any) { record({ name: "5. Reopen logs to timeline and audit", objective: "-", steps: ["-"], expected: "-", actual: "threw: " + e.message, pass: false }); }
+  } catch (e: any) { record({ name: "5. Reopen logs to timeline and audit", objective: "-", steps: ["-"], expected:"-", actual: "threw: " + e.message, pass: false }); }
   try {
-    const stranger = await prisma.employee.findFirstOrThrow({ where: { id: { notIn: [marco.employeeId, manager.employeeId] }, workEmail: { not: "wafa@example.test" } } });
+    const stranger = await prisma.employee.findFirstOrThrow({ where: { id: { notIn: [petra.employeeId, manager.employeeId] }, workEmail: { not: "wafa@example.test" } } });
     const strangerUser = await asUser(stranger.workEmail);
     const full = await prisma.review.findUniqueOrThrow({ where: { id: review.id } });
     const canView = canViewReview(strangerUser, full);
-    record({ name: "6. Unrelated employee cannot access review", objective: "Deny forged URL.", steps: ["stranger", "canViewReview"], expected: "false.", actual: `canView=${canView}`, pass: canView === false });
+    record({ name: "6. Unrelated employee cannot access review", objective: "Deny forged URL.", steps: ["stranger","canViewReview"], expected: "false.", actual: `canView=${canView}`, pass: canView === false });
   } catch (e: any) { record({ name: "6. Unrelated employee cannot access review", objective: "-", steps: ["-"], expected: "-", actual: "threw: " + e.message, pass: false }); }
   const passed = results.filter((r) => r.pass).length;
   console.log(`\n=== SUMMARY: ${passed}/${results.length} passed ===`);

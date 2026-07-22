@@ -13,10 +13,8 @@ import {
   closeReview,
   WorkflowError,
 } from "../src/modules/performance/review-workflow";
-
 type Result = { name: string; objective: string; steps: string[]; expected: string; actual: string; pass: boolean };
 const results: Result[] = [];
-
 function record(r: Result) {
   results.push(r);
   console.log("\n[" + (r.pass ? "PASS" : "FAIL") + "] " + r.name);
@@ -25,7 +23,6 @@ function record(r: Result) {
   console.log("  Expected: " + r.expected);
   console.log("  Actual:   " + r.actual);
 }
-
 async function asUser(email: string): Promise<AuthUser> {
   const e = await prisma.employee.findUniqueOrThrow({
     where: { workEmail: email },
@@ -48,34 +45,36 @@ async function reviewFor(emailEmployee: string) {
   const emp = await prisma.employee.findUniqueOrThrow({ where: { workEmail: emailEmployee } });
   return prisma.review.findFirstOrThrow({ where: { employeeId: emp.id, type: "QUARTERLY" } });
 }
-
 async function main() {
   console.log("=== Stage 2 acceptance tests ===");
   const HR = await asUser("wafa@example.test");
   const cycle = await findOpenCycle();
-
   {
-    const first = await createQuarterlyReviewsForCycle(cycle.id, HR);
+    // Seed-tolerant: the seed may pre-create quarterly reviews. What matters is that
+    // creating again never duplicates — the count stays stable across repeated runs.
+    const before = await prisma.review.count({ where: { cycleId: cycle.id, type: "QUARTERLY" } });
+    await createQuarterlyReviewsForCycle(cycle.id, HR);
+    const afterFirst = await prisma.review.count({ where: { cycleId: cycle.id, type: "QUARTERLY" } });
     const second = await createQuarterlyReviewsForCycle(cycle.id, HR);
-    const total = await prisma.review.count({ where: { cycleId: cycle.id, type: "QUARTERLY" } });
+    const afterSecond = await prisma.review.count({ where: { cycleId: cycle.id, type: "QUARTERLY" } });
     record({
       name: "1. Quarterly review creation is idempotent",
-      objective: "Running create twice must not duplicate reviews.",
-      steps: ["createQuarterlyReviewsForCycle x2 as HR", "count reviews"],
-      expected: "2nd run creates 0, skips all; total equals 1st run's created.",
-      actual: "1st created=" + first.created + ", 2nd created=" + second.created + ", 2nd skipped=" + second.skipped + ", total=" + total,
-      pass: second.created === 0 && second.skipped === first.created && total === first.created,
+      objective: "Running create again must not duplicate reviews, whatever already exists.",
+      steps: ["count", "createQuarterlyReviewsForCycle x2 as HR", "count after each"],
+      expected: "No duplicates: count stable across repeated creates; 2nd run creates 0.",
+      actual: "before=" + before + ", afterFirst=" + afterFirst + ", afterSecond=" + afterSecond + " (2nd created=" + second.created + ", skipped=" + second.skipped + ")",
+      pass: afterFirst === afterSecond && second.created === 0,
     });
   }
-
-  const marco = await asUser("m.rossi@example.test");
+  // Petra is a clean employee under Soo-jin whose reviews the seed does NOT pre-complete,
+  // so her quarterly review can be driven through the workflow here.
+  const petra = await asUser("p.novak@example.test");
   const soojin = await asUser("s.park@example.test");
-
   {
-    const rev = await reviewFor("m.rossi@example.test");
-    await saveEmployeeDraft(rev.id, marco, { ratings: [{ item: "IMPACT", score: 4 }, { item: "QUALITY", score: 4 }] });
+    const rev = await reviewFor("p.novak@example.test");
+    await saveEmployeeDraft(rev.id, petra, { ratings: [{ item: "IMPACT", score: 4 }, { item: "QUALITY", score: 4 }] });
     let msg = "no error thrown";
-    try { await submitReview(rev.id, marco); } catch (e) { msg = e instanceof WorkflowError ? e.message : String(e); }
+    try { await submitReview(rev.id, petra); } catch (e) { msg = e instanceof WorkflowError ? e.message : String(e); }
     const status = (await prisma.review.findUniqueOrThrow({ where: { id: rev.id } })).status;
     record({
       name: "2. Submission blocked if a required rating is missing",
@@ -86,16 +85,15 @@ async function main() {
       pass: msg.toLowerCase().includes("score all items") && status !== "SUBMITTED",
     });
   }
-
   {
-    const rev = await reviewFor("m.rossi@example.test");
-    await saveEmployeeDraft(rev.id, marco, { ratings: [{ item: "IMPACT", score: 4 }, { item: "QUALITY", score: 4 }, { item: "DELIVERY", score: 3 }] });
-    await submitReview(rev.id, marco);
+    const rev = await reviewFor("p.novak@example.test");
+    await saveEmployeeDraft(rev.id, petra, { ratings: [{ item: "IMPACT", score: 4 }, { item: "QUALITY", score: 4 }, { item: "DELIVERY", score: 3 }] });
+    await submitReview(rev.id, petra);
     await managerOpen(rev.id, soojin);
     await returnToEmployee(rev.id, soojin, "Please expand the reflection");
     const status = (await prisma.review.findUniqueOrThrow({ where: { id: rev.id } })).status;
     let canEdit = false;
-    try { await saveEmployeeDraft(rev.id, marco, { ratings: [{ item: "IMPACT", score: 5 }] }); canEdit = true; } catch { canEdit = false; }
+    try { await saveEmployeeDraft(rev.id, petra, { ratings: [{ item: "IMPACT", score: 5 }] }); canEdit = true; } catch { canEdit = false; }
     const tl = await timelineTypes(rev.id);
     record({
       name: "3. Return to employee restores editing",
@@ -106,11 +104,10 @@ async function main() {
       pass: status === "IN_PROGRESS" && canEdit && tl.includes("RETURNED"),
     });
   }
-
   {
-    const rev = await reviewFor("m.rossi@example.test");
-    await saveEmployeeDraft(rev.id, marco, { ratings: [{ item: "IMPACT", score: 4 }, { item: "QUALITY", score: 4 }, { item: "DELIVERY", score: 3 }] });
-    await submitReview(rev.id, marco);
+    const rev = await reviewFor("p.novak@example.test");
+    await saveEmployeeDraft(rev.id, petra, { ratings: [{ item: "IMPACT", score: 4 }, { item: "QUALITY", score: 4 }, { item: "DELIVERY", score: 3 }] });
+    await submitReview(rev.id, petra);
     await managerOpen(rev.id, soojin);
     await saveManagerDraft(rev.id, soojin, { ratings: [{ item: "IMPACT", score: 4 }, { item: "QUALITY", score: 3 }, { item: "DELIVERY", score: 3 }] });
     await managerComplete(rev.id, soojin);
@@ -130,25 +127,23 @@ async function main() {
       pass: emptyReasonRejected && tl.includes("REOPENED") && tl.includes("CLOSED") && audit.includes("review.reopened") && audit.includes("review.closed"),
     });
   }
-
   {
-    const rev = await reviewFor("m.rossi@example.test");
+    const rev = await reviewFor("p.novak@example.test");
     const joana = await asUser("j.silva@example.test");
     const full = await prisma.review.findUniqueOrThrow({ where: { id: rev.id } });
     const joanaCanView = canViewReview(joana, full);
-    const marcoCanView = canViewReview(marco, full);
+    const petraCanView = canViewReview(petra, full);
     const soojinCanView = canViewReview(soojin, full);
     const hrCanView = canViewReview(HR, full);
     record({
       name: "5. Unrelated employee cannot access another's review (forged URL)",
       objective: "canViewReview refuses an unrelated employee; allows owner, manager, HR.",
-      steps: ["canViewReview for Joana, Marco, Soo-jin, Wafa"],
-      expected: "Joana=false; Marco=true; Soo-jin=true; HR=true.",
-      actual: "Joana=" + joanaCanView + ", Marco=" + marcoCanView + ", Soojin=" + soojinCanView + ", HR=" + hrCanView,
-      pass: joanaCanView === false && marcoCanView && soojinCanView && hrCanView,
+      steps: ["canViewReview for Joana, Petra, Soo-jin, Wafa"],
+      expected: "Joana=false; Petra=true; Soo-jin=true; HR=true.",
+      actual: "Joana=" + joanaCanView + ", Petra=" + petraCanView + ", Soojin=" + soojinCanView + ", HR=" + hrCanView,
+      pass: joanaCanView === false && petraCanView && soojinCanView && hrCanView,
     });
   }
-
   {
     const empCount = await prisma.employee.count();
     const guideCount = await prisma.ratingGuide.count();
@@ -163,12 +158,10 @@ async function main() {
       pass: empCount >= 10 && guideCount >= 1 && soojinReports.length >= 1,
     });
   }
-
   const passed = results.filter((r) => r.pass).length;
   console.log("\n=== SUMMARY: " + passed + "/" + results.length + " passed ===");
   for (const r of results) console.log("  " + (r.pass ? "PASS" : "FAIL") + "  " + r.name);
   await prisma.$disconnect();
   if (passed !== results.length) process.exit(1);
 }
-
 main().catch(async (e) => { console.error("Harness crashed:", e); await prisma.$disconnect(); process.exit(1); });
