@@ -59,7 +59,7 @@ async function timeline(reviewId: string) {
 const qRatings = (base: number) => QUARTERLY_ITEMS.map((item, i) => ({ item, score: ((base + i) % 5) + 1 }));
 const vRatings = (base: number) => VALUES_ITEMS.map((item, i) => ({ item, score: ((base + i) % 5) + 1 }));
 
-const EMP = "m.rossi@example.test";
+const EMP = "p.novak@example.test";
 const MGR = "s.park@example.test";
 const HR = "wafa@example.test";
 
@@ -173,7 +173,7 @@ async function main() {
 
   // TEST 9 — unrelated employee cannot view the year-end (forged URL).
   try {
-    const strangerUser = await asUser("p.novak@example.test");
+    const strangerUser = await asUser("j.silva@example.test");
     const full = await prisma.review.findUniqueOrThrow({ where: { id: ye.id } });
     const canView = canViewReview(strangerUser, full);
     record({ name: "9. Unrelated employee cannot access the year-end summary", expected: "canView=false", actual: `canView=${canView}`, pass: canView === false });
