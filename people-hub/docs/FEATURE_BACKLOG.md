@@ -116,3 +116,19 @@ Do properly, not as a quick control:
 - Validation (valid rating-guide category; manager exists; no self-manager/cycles).
 Placement: its own small stage, or bundle with v0.10 production hardening. Not in v0.7.
 Note: the dashboard flag itself is correct and useful; this is about the fix path.
+
+## Delete an opened-in-error cycle (empty cycles only) [requested during v0.7]
+Status: backlog, ready to build (small, self-contained). Requested by Ash: ability to
+remove a cycle opened by mistake (wrong type/label) from the Review periods page.
+Rule (compliant, non-destructive):
+- Allow delete ONLY if the cycle has 0 reviews generated. This covers the real need
+  (opened in error, before generating) with no risk to assessment data.
+- If the cycle has any reviews: REFUSE. Point HR to closing the cycle instead (cycles
+  can be closed/reopened). Never destroy performance records (PDPL/SAMA: retain records).
+- HR-only, server-guarded, audited (who deleted which empty cycle, when).
+Build: deleteEmptyCycle(cycleId, actor) in review-workflow.ts (guard: HR, cycle exists,
+period not completed, review count == 0, else WorkflowError); a delete control on the
+periods page shown only for empty cycles, with confirm; a Stage 5 harness test (delete
+empty cycle succeeds; delete cycle-with-reviews refused).
+Sequence: as a small piece after v0.7 sign-off, or its own micro-release. Not part of the
+v0.7 dashboard scope.
