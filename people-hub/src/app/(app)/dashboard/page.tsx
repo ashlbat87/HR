@@ -1,6 +1,7 @@
 // HR Dashboard — Performance Operations Cockpit (v0.7). HR/HR Admin only, guarded
 // server-side. Active period, current period health (per cycle, stage-aware),
-// process exceptions (Needs Attention), and data-quality (Setup Issues).
+// process exceptions (Needs Attention), and data-quality (Setup Issues). Every review
+// number links into /reviews-browse with the matching filters.
 
 import { getCurrentUser } from "@/core/auth";
 import { isHR } from "@/core/access";
@@ -38,6 +39,10 @@ export default async function DashboardPage() {
     getEmployeesMissingManager(),
     getEmployeesMissingGuide(),
   ]);
+
+  const pid = currentPeriod?.id ?? "";
+  const browse = (cycleId: string, stage: string) =>
+    `/reviews-browse?period=${encodeURIComponent(pid)}&cycle=${encodeURIComponent(cycleId)}&stage=${encodeURIComponent(stage)}`;
 
   const attention = summary
     .map((c) => ({
@@ -83,10 +88,12 @@ export default async function DashboardPage() {
             </div>
             <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
               {c.stages.map((s) => (
-                <div key={s.key} style={{ flex: "1 1 120px", background: s.key === "done" ? "var(--purple-subtle)" : "#F5F6F8", borderRadius: 8, padding: "8px 10px" }}>
-                  <div className="muted" style={{ fontSize: 12 }}>{s.label}</div>
-                  <div style={{ fontSize: 18, fontWeight: 600 }}>{s.count}</div>
-                </div>
+                <Link key={s.key} href={browse(c.cycleId, s.key)} style={{ flex: "1 1 120px", textDecoration: "none", color: "inherit" }}>
+                  <div style={{ background: s.key === "done" ? "var(--purple-subtle)" : "#F5F6F8", borderRadius: 8, padding: "8px 10px" }}>
+                    <div className="muted" style={{ fontSize: 12 }}>{s.label}</div>
+                    <div style={{ fontSize: 18, fontWeight: 600 }}>{s.count}</div>
+                  </div>
+                </Link>
               ))}
             </div>
             {c.bottleneck ? (
@@ -106,9 +113,9 @@ export default async function DashboardPage() {
           <div key={a.cycleId} className="card" style={{ marginBottom: 10 }}>
             <div style={{ fontWeight: 600, marginBottom: 8 }}>{a.label} <span className="muted" style={{ fontSize: 13, fontWeight: 400 }}>· {a.typeLabel}</span></div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {a.notStarted > 0 ? <span className="chip">{a.notStarted} not started</span> : null}
-              {a.awaitingManager > 0 ? <span className="chip">{a.awaitingManager} awaiting manager</span> : null}
-              {a.awaitingAck > 0 ? <span className="chip">{a.awaitingAck} awaiting acknowledgement</span> : null}
+              {a.notStarted > 0 ? <Link href={browse(a.cycleId, "self_review")} className="chip" style={{ textDecoration: "none" }}>{a.notStarted} not started</Link> : null}
+              {a.awaitingManager > 0 ? <Link href={browse(a.cycleId, "awaiting_manager")} className="chip" style={{ textDecoration: "none" }}>{a.awaitingManager} awaiting manager</Link> : null}
+              {a.awaitingAck > 0 ? <Link href={browse(a.cycleId, "awaiting_ack")} className="chip" style={{ textDecoration: "none" }}>{a.awaitingAck} awaiting acknowledgement</Link> : null}
             </div>
           </div>
         ))
@@ -120,8 +127,8 @@ export default async function DashboardPage() {
       ) : (
         <div className="card">
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {missingManager.length > 0 ? <span className="chip status-overdue">{missingManager.length} missing manager</span> : null}
-            {missingGuide.length > 0 ? <span className="chip status-overdue">{missingGuide.length} missing rating guide</span> : null}
+            {missingManager.length > 0 ? <Link href="/reviews-browse?dq=missing_manager" className="chip status-overdue" style={{ textDecoration: "none" }}>{missingManager.length} missing manager</Link> : null}
+            {missingGuide.length > 0 ? <Link href="/reviews-browse?dq=missing_guide" className="chip status-overdue" style={{ textDecoration: "none" }}>{missingGuide.length} missing rating guide</Link> : null}
           </div>
           <div className="muted" style={{ fontSize: 12, marginTop: 8 }}>These block reviews from running for the affected employees.</div>
         </div>

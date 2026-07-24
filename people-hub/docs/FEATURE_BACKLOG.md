@@ -103,3 +103,16 @@ v0.7 dependency: the v0.7 data model and drill-down (Period -> type -> status ->
 employee/review, with the manager reachable per review) must not block building this.
 Placement: v0.8 (Reporting, Moderation & Calibration) or later. Also a v0.8 design
 consideration and part of the future Reporting/Insights requirements.
+
+## In-app employee editing (assign rating guide / manager) [surfaced during v0.7 6c]
+Status: backlog. Surfaced when the HR Dashboard's Setup Issues section flagged a missing
+rating guide (Petra Novak) but there was no in-app way to fix it — ratingGuideCategory
+and manager are currently set only via CSV import or the seed.
+Need: let HR resolve Setup Issues without re-importing, at minimum assign/change an
+employee's rating guide category and manager from the employee profile.
+Do properly, not as a quick control:
+- Access control (who may edit employee records) and server-side guards.
+- Audit logging of every change (actor, field, old/new value) — PDPL/SAMA defensibility.
+- Validation (valid rating-guide category; manager exists; no self-manager/cycles).
+Placement: its own small stage, or bundle with v0.10 production hardening. Not in v0.7.
+Note: the dashboard flag itself is correct and useful; this is about the fix path.
