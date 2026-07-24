@@ -48,4 +48,4 @@ Foundational: lets the tool run year over year.
 ## Next objective
 Release v0.7 (HR Dashboard — Performance Operations Cockpit). Design approved
 (docs/STAGE6_v0_7_DESIGN.md); building in staged gates 6a-6e. v0.6 (Review Cycle &
-Period Management) is complete and signed off.
+Period Managem.
