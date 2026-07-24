@@ -20,7 +20,7 @@ export const STATUS_CLASS: Record<string, string> = {
 };
 export const TYPE_LABEL: Record<string, string> = {
   QUARTERLY: "Quarterly review",
-  ANNUAL_VALUES: "Annual values review",
+  ANNUAL_VALUES: "Values Review",
   YEAR_END: "Year-end summary",
 };
 

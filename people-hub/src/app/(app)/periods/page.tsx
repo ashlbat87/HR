@@ -5,10 +5,11 @@ import { isHR } from "@/core/access";
 import { redirect } from "next/navigation";
 import { prisma } from "@/shared/lib/prisma";
 import { StartPeriod, SetCurrent, OpenCycle, CompletePeriod } from "./PeriodControls";
+import { CreateCycleReviews } from "../reviews/CreateCycleReviews";
 
 const TYPE_LABEL: Record<string, string> = {
   QUARTERLY: "Quarterly",
-  ANNUAL_VALUES: "Annual values",
+  ANNUAL_VALUES: "Values Review",
   YEAR_END: "Year-end",
 };
 
@@ -61,11 +62,18 @@ export default async function PeriodsPage() {
               ) : (
                 <div style={{ marginTop: 10 }}>
                   {p.cycles.map((c) => (
-                    <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, padding: "4px 0" }}>
-                      <span style={{ fontWeight: 600, minWidth: 110 }}>{TYPE_LABEL[c.type] ?? c.type}</span>
-                      <span className="muted">{c.label}</span>
-                      <span className="muted">· {c._count.reviews} review{c._count.reviews === 1 ? "" : "s"}</span>
-                      {c.isOpen ? <span className="chip status-completed">Open</span> : <span className="chip">Closed</span>}
+                    <div key={c.id} style={{ padding: "6px 0" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
+                        <span style={{ fontWeight: 600, minWidth: 110 }}>{TYPE_LABEL[c.type] ?? c.type}</span>
+                        <span className="muted">{c.label}</span>
+                        <span className="muted">· {c._count.reviews} review{c._count.reviews === 1 ? "" : "s"}</span>
+                        {c.isOpen ? <span className="chip status-completed">Open</span> : <span className="chip">Closed</span>}
+                      </div>
+                      {c.isOpen && !completed ? (
+                        <div style={{ marginTop: 6 }}>
+                          <CreateCycleReviews cycleId={c.id} label={c.label} type={c.type} />
+                        </div>
+                      ) : null}
                     </div>
                   ))}
                 </div>

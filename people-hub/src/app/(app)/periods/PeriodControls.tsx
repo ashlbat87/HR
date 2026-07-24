@@ -10,7 +10,7 @@ import {
 
 const TYPE_LABEL: Record<string, string> = {
   QUARTERLY: "Quarterly",
-  ANNUAL_VALUES: "Annual values",
+  ANNUAL_VALUES: "Values Review",
   YEAR_END: "Year-end",
 };
 
@@ -90,7 +90,7 @@ export function OpenCycle({ periodId }: { periodId: string }) {
       <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
         <select value={type} disabled={busy} onChange={(e) => setType(e.target.value)}>
           <option value="QUARTERLY">Quarterly</option>
-          <option value="ANNUAL_VALUES">Annual values</option>
+          <option value="ANNUAL_VALUES">Values Review</option>
           <option value="YEAR_END">Year-end</option>
         </select>
         <input

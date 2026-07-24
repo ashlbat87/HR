@@ -93,7 +93,7 @@ export default async function ProfilePage({
             </div>
           </div>
           <div>
-            <div className="muted" style={{ fontSize: 12, marginBottom: 3 }}>Annual values rating</div>
+            <div className="muted" style={{ fontSize: 12, marginBottom: 3 }}>Values rating</div>
             <span className="coming-soon">Coming soon</span>
           </div>
           <div>
@@ -146,7 +146,7 @@ export default async function ProfilePage({
 
       <h2>Performance timeline</h2>
       <div className="empty">
-        Quarterly scores, the annual values review, and the year-end summary will
+        Quarterly scores, the Values Review, and the year-end summary will
         appear here once those stages are built. Performance and values will be
         shown separately, and scores will honour the manager-only rule.
       </div>

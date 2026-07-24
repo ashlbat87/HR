@@ -10,7 +10,7 @@ export function CreateCycleReviews({ cycleId, label, type }: { cycleId: string; 
 
   const isValues = type === "ANNUAL_VALUES";
   const isYearEnd = type === "YEAR_END";
-  const kindLabel = isYearEnd ? "year-end" : isValues ? "annual values" : "quarterly";
+  const kindLabel = isYearEnd ? "year-end" : isValues ? "values" : "quarterly";
 
   async function go() {
     setBusy(true);

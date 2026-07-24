@@ -656,6 +656,15 @@ export async function openCycleInPeriod(
   const period = await prisma.reviewPeriod.findUnique({ where: { id: periodId } });
   if (!period) throw new WorkflowError("Review period not found.");
   if (period.status === "COMPLETED") throw new WorkflowError("Cannot open a cycle in a completed period.");
+  const CAP: Record<ReviewType, number> = { QUARTERLY: 4, ANNUAL_VALUES: 2, YEAR_END: 1 } as any;
+  const existingOfType = await prisma.reviewCycle.count({ where: { periodId, type } });
+  if (existingOfType >= CAP[type]) {
+    const noun =
+      type === "QUARTERLY" ? "four quarterly cycles"
+      : type === "ANNUAL_VALUES" ? "two annual values cycles"
+      : "one year-end cycle";
+    throw new WorkflowError("A review period can have at most " + noun + ".");
+  }
   const cycle = await prisma.reviewCycle.create({
     data: {
       type,

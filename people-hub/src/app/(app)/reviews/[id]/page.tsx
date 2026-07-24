@@ -59,7 +59,7 @@ export default async function ReviewDetailPage({
   const mode: "employee" | "manager" = isManager ? "manager" : "employee";
   const isValues = review.type === "ANNUAL_VALUES";
   const isYearEnd = review.type === "YEAR_END";
-  const title = isYearEnd ? "Year-end summary" : isValues ? "Annual values review" : "Quarterly review";
+  const title = isYearEnd ? "Year-end summary" : isValues ? "Values Review" : "Quarterly review";
 
   // For year-end summaries, assemble the quarterly + values data.
   let yearEnd: Awaited<ReturnType<typeof assembleYearEndData>> | null = null;
