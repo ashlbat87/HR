@@ -67,3 +67,19 @@ Open questions for when we build it:
    content-and-presentation task than a complex build.
 Note: no data-model impact expected; it surfaces existing information in one
 employee-friendly place.
+
+## HR admin consolidation — v0.7 (HR Dashboard) [surfaced during v0.6]
+Status: agreed direction; do at v0.7, not before.
+Context: during v0.6 we considered removing the standalone Review admin page, since HR
+should see review status on the dashboard. But the dashboard is still a Stage 1
+placeholder (headcounts only); it does not yet show review status or let HR browse all
+reviews. Removing Review admin now would be a functional regression (it is the only
+surface to browse every review and reach an archived year-end to reopen it).
+Plan for v0.7:
+- Build real review status / cycle-progress into the HR Dashboard.
+- Absorb Review admin's "browse all reviews" (and the reopen-archived-year-end path)
+  into the dashboard.
+- Then remove the standalone Review admin page.
+- Consider bringing period management (the Review periods page) under one coherent HR
+  admin surface, and settle naming then (e.g. a single "HR admin" area).
+Until then: keep both the Review admin page and the Review periods page as they are.
