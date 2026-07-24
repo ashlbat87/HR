@@ -1,3 +1,19 @@
+## [0.6] — Stage 5 / Release v0.6: Review Cycle & Period Management (COMPLETE)
+A review period becomes a first-class entity, letting the Hub run period over period.
+Full record: docs/STAGE5_v0_6_ACCEPTANCE.md. Design: docs/STAGE5_v0_6_DESIGN.md.
+### Added
+- ReviewPeriod entity (label, status, isCurrent, closedAt) + PeriodStatus enum; ReviewCycle gains periodId.
+- HR-only period functions: createReviewPeriod, setCurrentPeriod, openCycleInPeriod, completeReviewPeriod (guarded, audited).
+- Per-type cycle caps within a period: 4 quarterly, 2 Values Review (allows a mid-year check-in), 1 year-end; enforced in openCycleInPeriod.
+- HR "Review periods" page: start a period, set current, open cycles of each type, generate reviews per cycle, and complete a period.
+- Completing a period is blocked while any review is incomplete, showing a grouped outstanding-reviews summary (by type + status).
+- Seed creates a default current period "2026" and attaches the seeded cycles to it.
+### Changed
+- "Annual values" relabelled to "Values Review" across the UI (display only; ANNUAL_VALUES type code unchanged).
+### Verification
+- Stage 5 acceptance 8/8 (incl. cycle-type caps); regressions Stage 2 6/6, Stage 3 6/6, Stage 4 9/9; typecheck clean; manual UI walk-through. Prototype release; fictional data only.
+### Deferred
+- HR admin consolidation and removal of the standalone Review admin page → v0.7 (dashboard must first provide review status / browse-all). periodId tightening → later hardening.
 ## [0.5.1] — Review Experience & Rating Design System (COMPLETE)
 Point release on top of v0.5. Refines the review experience and introduces the rating
 design system across the existing review features. Full record: docs/STAGE5_v0_5_1_ACCEPTANCE.md.

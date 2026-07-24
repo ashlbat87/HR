@@ -115,3 +115,31 @@
   year-end excluded from the scoring-button pattern by design; annual-score descriptive
   label a future policy decision.
 - **Prototype release:** fictional data, mock auth. No real data.
+
+## Stage 5 / Release v0.6 (Review Cycle & Period Management) — COMPLETE and ACCEPTED
+
+- **Status:** Complete and accepted.
+- **Approved by:** Ash (Head of People).
+- **Date:** 22 July 2026.
+- **Design note approved before build:** docs/STAGE5_v0_6_DESIGN.md.
+- **Verification:** Stage 5 acceptance harness 8/8 (period lifecycle, current-flag
+  rules, cycle creation + periodId, completed-period guard, completion block with
+  outstanding list, successful completion archiving cycles, HR-only guard, cycle-type
+  caps). Regressions: Stage 2 6/6, Stage 3 6/6, Stage 4 9/9. Typecheck clean. Manual UI
+  walk-through by Ash. Full record: docs/STAGE5_v0_6_ACCEPTANCE.md.
+- **Delivered:** ReviewPeriod entity + PeriodStatus + cycle.periodId (additive schema);
+  HR-only functions createReviewPeriod / setCurrentPeriod / openCycleInPeriod /
+  completeReviewPeriod (guarded, audited); per-type cycle caps (4 quarterly, 2 Values
+  Review, 1 year-end); HR "Review periods" page (start period, set current, open cycles,
+  generate reviews per cycle, complete period with a grouped outstanding-reviews block);
+  "Annual values" relabelled to "Values Review" (display only); seed creates a default
+  current period "2026".
+- **Decisions (approved):** freely-named period (defaults to calendar year); completion
+  blocked while any review incomplete (no force-close, no data-wipe — PDPL/SAMA);
+  multiple periods with exactly one current; completed period read-only with a basic
+  view now and rich history deferred to v0.7; cycle-type caps 4/2/1.
+- **Deferred:** HR admin consolidation and removal of the standalone Review admin page
+  to v0.7 (dashboard must first provide review status / browse-all); periodId tightening
+  to a later hardening pass. Tracked in docs/FEATURE_BACKLOG.md.
+- **Prototype release:** fictional data, mock auth. No real data before the production
+  gate (v0.10).
