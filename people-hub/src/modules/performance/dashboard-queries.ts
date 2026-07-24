@@ -57,48 +57,64 @@ function classify(type: ReviewType, status: ReviewStatus, acknowledgedAt: Date |
 }
 
 // For a given period, summarise each review type that has reviews in it.
-export async function getPeriodStatusSummary(periodId: string): Promise<ReviewTypeStatus[]> {
-  const reviews = await prisma.review.findMany({
-    where: { cycle: { periodId } },
-    select: { type: true, status: true, acknowledgedAt: true },
+export interface CycleStatus {
+  cycleId: string;
+  label: string;
+  type: ReviewType;
+  typeLabel: string;
+  total: number;
+  completed: number;
+  completionPct: number;
+  stages: StageCount[];
+  outstanding: number;
+  bottleneck: string | null;
+}
+
+// For a given period, summarise each CYCLE (not just each type), so multiple quarterly
+// cycles (e.g. Q1 and Q2) appear as separate rows with their own labels.
+export async function getPeriodStatusSummary(periodId: string): Promise<CycleStatus[]> {
+  const cycles = await prisma.reviewCycle.findMany({
+    where: { periodId },
+    select: {
+      id: true,
+      type: true,
+      label: true,
+      createdAt: true,
+      reviews: { select: { type: true, status: true, acknowledgedAt: true } },
+    },
   });
 
-  const byType = new Map<ReviewType, { total: number; counts: Record<StageKey, number> }>();
-  for (const r of reviews) {
-    let bucket = byType.get(r.type);
-    if (!bucket) {
-      bucket = { total: 0, counts: { self_review: 0, awaiting_manager: 0, awaiting_ack: 0, done: 0 } };
-      byType.set(r.type, bucket);
-    }
-    bucket.total++;
-    bucket.counts[classify(r.type, r.status, r.acknowledgedAt)]++;
-  }
-
-  const out: ReviewTypeStatus[] = [];
-  for (const [type, bucket] of byType) {
-    const keys = stagesForType(type);
-    const stages: StageCount[] = keys.map((k) => ({ key: k, label: STAGE_LABEL[k], count: bucket.counts[k] }));
-    const completed = bucket.counts.done;
-    const outstanding = bucket.total - completed;
-    // Bottleneck = the outstanding (non-done) stage with the largest count.
-    const outstandingStages = stages.filter((s) => s.key !== "done" && s.count > 0);
-    outstandingStages.sort((a, b) => b.count - a.count);
+  const out: CycleStatus[] = [];
+  for (const cycle of cycles) {
+    if (cycle.reviews.length === 0) continue; // only show cycles that have reviews
+    const counts: Record<StageKey, number> = { self_review: 0, awaiting_manager: 0, awaiting_ack: 0, done: 0 };
+    for (const r of cycle.reviews) counts[classify(cycle.type, r.status, r.acknowledgedAt)]++;
+    const keys = stagesForType(cycle.type);
+    const stages: StageCount[] = keys.map((k) => ({ key: k, label: STAGE_LABEL[k], count: counts[k] }));
+    const total = cycle.reviews.length;
+    const completed = counts.done;
+    const outstanding = total - completed;
+    const outstandingStages = stages.filter((s) => s.key !== "done" && s.count > 0).sort((a, b) => b.count - a.count);
     const top = outstandingStages[0];
-    const bottleneck = top ? `Main bottleneck: ${top.count} at ${top.label.toLowerCase()}` : null;
     out.push({
-      type,
-      typeLabel: TYPE_LABEL[type] ?? type,
-      total: bucket.total,
+      cycleId: cycle.id,
+      label: cycle.label,
+      type: cycle.type,
+      typeLabel: TYPE_LABEL[cycle.type] ?? cycle.type,
+      total,
       completed,
-      completionPct: bucket.total ? Math.round((completed / bucket.total) * 100) : 0,
+      completionPct: total ? Math.round((completed / total) * 100) : 0,
       stages,
       outstanding,
-      bottleneck,
+      bottleneck: top ? `Main bottleneck: ${top.count} at ${top.label.toLowerCase()}` : null,
     });
   }
-  // Stable order: Quarterly, Values, Year-End.
+
   const ORDER: ReviewType[] = ["QUARTERLY", "ANNUAL_VALUES", "YEAR_END"] as any;
-  out.sort((a, b) => ORDER.indexOf(a.type) - ORDER.indexOf(b.type));
+  out.sort((a, b) => {
+    const d = ORDER.indexOf(a.type) - ORDER.indexOf(b.type);
+    return d !== 0 ? d : a.label.localeCompare(b.label);
+  });
   return out;
 }
 // ---- Filtered reviews for drill-down / click-through (v0.7). ----
