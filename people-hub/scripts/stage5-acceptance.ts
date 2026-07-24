@@ -112,7 +112,22 @@ async function main() {
     record({ name: "7. Period management is HR-only (non-HR create refused)", expected: "refused", actual: refused ? "refused" : "NOT refused", pass: refused });
   } catch (e: any) { record({ name: "7. HR-only guard", expected: "-", actual: "threw: " + e.message, pass: false }); }
 
-  const passed = results.filter((r) => r.pass).length;
+  // TEST 8 — per-type cycle caps within a period (4 quarterly, 2 values, 1 year-end).
+  try {
+    const capP = await createReviewPeriod("CAP-TEST", hr);
+    for (let i = 1; i <= 4; i++) await openCycleInPeriod(capP.id, "QUARTERLY" as any, "Q" + i, hr);
+    let fifthQBlocked = false;
+    try { await openCycleInPeriod(capP.id, "QUARTERLY" as any, "Q5", hr); } catch (e) { if (e instanceof WorkflowError) fifthQBlocked = true; }
+    await openCycleInPeriod(capP.id, "ANNUAL_VALUES" as any, "V1", hr);
+    await openCycleInPeriod(capP.id, "ANNUAL_VALUES" as any, "V2", hr);
+    let thirdVBlocked = false;
+    try { await openCycleInPeriod(capP.id, "ANNUAL_VALUES" as any, "V3", hr); } catch (e) { if (e instanceof WorkflowError) thirdVBlocked = true; }
+    await openCycleInPeriod(capP.id, "YEAR_END" as any, "YE1", hr);
+    let secondYBlocked = false;
+    try { await openCycleInPeriod(capP.id, "YEAR_END" as any, "YE2", hr); } catch (e) { if (e instanceof WorkflowError) secondYBlocked = true; }
+    const pass = fifthQBlocked && thirdVBlocked && secondYBlocked;
+    record({ name: "8. Cycle-type caps enforced (4 quarterly, 2 values, 1 year-end)", expected: "5th quarterly, 3rd values, 2nd year-end all blocked", actual: `5thQ=${fifthQBlocked}, 3rdV=${thirdVBlocked}, 2ndYE=${secondYBlocked}`, pass });
+  } catch (e: any) { record({ name: "8. Cycle-type caps", expected: "-", actual: "threw: " + e.message, pass: false }); }const passed = results.filter((r) => r.pass).length;
   console.log(`\n=== SUMMARY: ${passed}/${results.length} passed ===`);
   for (const r of results) console.log(`  ${r.pass ? "PASS" : "FAIL"}  ${r.name}`);
   await prisma.$disconnect();
