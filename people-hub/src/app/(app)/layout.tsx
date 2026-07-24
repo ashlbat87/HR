@@ -64,9 +64,9 @@ export default async function AppLayout({
         <nav className="nav">
           <Link href="/reviews">My Reviews</Link>
           {manager && <Link href="/team">My Team</Link>}
-          {hr && <Link href="/reviews-admin">Review admin</Link>}
-          {hr && <Link href="/periods">Review periods</Link>}
           {hr && <Link href="/dashboard">HR Dashboard</Link>}
+          {hr && <Link href="/reviews-browse">Browse reviews</Link>}
+          {hr && <Link href="/periods">Review periods</Link>}
           {hr && <Link href="/directory">Employee Directory</Link>}
           <Link
             href="/notifications"

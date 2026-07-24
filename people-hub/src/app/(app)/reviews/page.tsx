@@ -1,5 +1,5 @@
 // Reviews — a person's own reviews only. Team reviews live under /team;
-// HR administration lives under /reviews-admin.
+// HR administration lives on the HR Dashboard and Browse reviews.
 import { getCurrentUser } from "@/core/auth";
 import { requireSignedIn, isHR, isManager } from "@/core/access";
 import { prisma } from "@/shared/lib/prisma";

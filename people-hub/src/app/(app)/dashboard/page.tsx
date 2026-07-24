@@ -76,6 +76,10 @@ export default async function DashboardPage() {
         </div>
       )}
 
+      <p style={{ marginTop: 12, marginBottom: 0 }}>
+        <Link href="/reviews-browse">Browse all reviews →</Link>
+      </p>
+
       <Heading>Current period health</Heading>
       {summary.length === 0 ? (
         <div className="empty">No reviews are open in {currentPeriod ? currentPeriod.label : "the current period"} yet.</div>
