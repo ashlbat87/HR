@@ -40,7 +40,12 @@ Foundational: lets the tool run year over year.
 - Provisional neutral/semantic colours and Founders Grotesk webfont licence — pre-production.
 - "Reset" is satisfied by the existing reopen capability; no data-wipe feature will be
   built (retaining performance records is a PDPL/SAMA requirement).
+  - Manager Accountability View — future (v0.8+, Reporting/Insights). Operational patterns
+  in manager participation/follow-through. Guardrails: not a manager-quality score, no
+  league table, context/trends not punitive labels, any AI advisory and human-reviewed.
+  Recorded pre-coding during v0.7; not built in v0.7. Detail in docs/FEATURE_BACKLOG.md.
 
 ## Next objective
-Finish the quarterly rating definitions, then Release v0.6 (Review Cycle & Year
-Management). v0.6 not to begin until v0.5 is formally approved.
+Release v0.7 (HR Dashboard — Performance Operations Cockpit). Design approved
+(docs/STAGE6_v0_7_DESIGN.md); building in staged gates 6a-6e. v0.6 (Review Cycle &
+Period Management) is complete and signed off.

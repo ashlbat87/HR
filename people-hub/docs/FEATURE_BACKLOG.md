@@ -83,3 +83,23 @@ Plan for v0.7:
 - Consider bringing period management (the Review periods page) under one coherent HR
   admin surface, and settle naming then (e.g. a single "HR admin" area).
 Until then: keep both the Review admin page and the Review periods page as they are.
+
+## Manager Accountability View — future (v0.8+, Reporting/Insights) [recorded during v0.7, pre-coding]
+Status: recorded now at Ash's instruction, before v0.7 coding. NOT built in v0.7.
+Purpose: help HR identify patterns in manager participation and follow-through across
+performance cycles, to answer "which managers are consistently holding up the process or
+need support with performance management?"
+Possible future measures: reviews awaiting each manager; average time to complete;
+overdue manager reviews (needs deadlines, v0.9); repeated late completion across cycles;
+review return/reopen frequency by manager; completion rate by manager; trends over time;
+comparison against organisation/department norms.
+Guardrails (mandatory):
+- Operational/accountability view only, NOT an automated judgment of manager quality.
+- No manager performance score.
+- No simplistic league table.
+- Context and trends over punitive labels.
+- Any future AI interpretation must remain advisory and human-reviewed.
+v0.7 dependency: the v0.7 data model and drill-down (Period -> type -> status ->
+employee/review, with the manager reachable per review) must not block building this.
+Placement: v0.8 (Reporting, Moderation & Calibration) or later. Also a v0.8 design
+consideration and part of the future Reporting/Insights requirements.
