@@ -114,7 +114,7 @@ Do properly, not as a quick control:
 - Access control (who may edit employee records) and server-side guards.
 - Audit logging of every change (actor, field, old/new value) — PDPL/SAMA defensibility.
 - Validation (valid rating-guide category; manager exists; no self-manager/cycles).
-Placement: its own small stage, or bundle with v0.10 production hardening. Not in v0.7.
+Placement: its own small stage, or bundle with v0.11 production hardening. Not in v0.7.
 Note: the dashboard flag itself is correct and useful; this is about the fix path.
 
 ## Delete an opened-in-error cycle (empty cycles only) [requested during v0.7]
@@ -132,3 +132,29 @@ periods page shown only for empty cycles, with confirm; a Stage 5 harness test (
 empty cycle succeeds; delete cycle-with-reviews refused).
 Sequence: as a small piece after v0.7 sign-off, or its own micro-release. Not part of the
 v0.7 dashboard scope.
+
+## v0.9 — Moderation & Calibration (data-model spec, ready for design) [split from v0.8]
+Status: planned for v0.9; architected-for in v0.8. See PD-003, PD-004.
+Purpose: "what calibration decisions were made, by whom, and why." A formal, auditable
+calibration workflow on top of the v0.8 reporting foundation.
+Absolute rule: NEVER overwrite or silently edit the original manager rating. Performance
+and values remain separate here too (PD-001).
+Policy: before calibration, the submitted manager rating is the official rating. After an
+approved calibration decision, the moderated rating becomes the official final rating. The
+original manager rating remains preserved and visible for transparency and audit.
+Data model to add (does not disturb v0.8 reads):
+- original manager rating (already exists; preserved, immutable by moderation)
+- moderated rating (new; nullable until a calibration decision is approved)
+- adjustment reason (new)
+- decision maker (new; who approved)
+- decision date/timestamp (new)
+- calibration session (new; groups decisions)
+- session status (new; e.g. draft/open/approved/closed)
+- audit history (new; full trail of proposed/approved changes)
+- final sign-off (new)
+Workflow elements: calibration sessions; selected employee population; original vs
+proposed vs approved moderated rating; adjustment reason; decision maker; decision
+timestamp; calibration notes; session status; audit history; final sign-off.
+v0.8 seam (already built): the "official rating" resolver returns the manager rating today
+and must return the approved moderated rating once this exists, with NO change to reporting
+code. Reporting queries are shaped so v0.9 can show original vs moderated side by side.

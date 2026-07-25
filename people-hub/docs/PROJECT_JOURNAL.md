@@ -56,3 +56,39 @@ Known limitations: prototype only; partial-year handled with basis shown; N/A vs
 Lessons learned: the harness "failure" was a fixture issue (access test picked an HR user as the stranger), not a bug — diagnose before assuming a regression. A real gap surfaced in manual testing: four leads had no manager and got no reviews; adding a CEO and full hierarchy fixed it. Defining React components inside a component made the reflection textarea lose focus each keystroke; inlining fixed it. Long terminal heredocs remain fragile; editor paste is the reliable route for large files.
 Verification: Stage 4 harness 9/9; Stage 3 regression 6/6; Stage 2 regression 6/6; typecheck clean; manual walk-through across employee, manager, archived states.
 Next objective: Release v0.6 (Stage 5) HR Dashboard — not to begin until v0.5 is formally approved.
+
+## Stage 7 / Release v0.8 — Reporting & Insights: DESIGN (UX frozen, pre-implementation)
+Context: after v0.7 sign-off and the delete-empty-cycle feature, began v0.8. Ash directed
+that the bundled "Reporting, Moderation & Calibration" be split: v0.8 = Reporting &
+Insights (analytical foundation + Manager Accountability View); v0.9 = Moderation &
+Calibration (formal calibration workflow) built on top. Roadmap/release-history renumbered
+accordingly (Notifications -> v0.10, Production Hardening -> v0.11; prototype era now
+v0.1-v0.10, production transition v0.11).
+Design saga: the module was deliberately shaped as an HR Insights Hub, not a report menu.
+Landing hierarchy Executive Summary -> Key Highlights -> Explore Reports -> (reserved AI
+slot at the bottom). Successive refinements from Ash: reports framed as HR's questions;
+Executive Summary is rule-based (NOT AI) and answers three questions (what happened / what
+HR should know / what HR should do, the last from a fixed bounded phrase set tied to
+configurable Insight Rules); median review completion time added to Manager Accountability
+(completion % alone hides employee experience); minimum-population suppression removed for
+HR (HR-only + already-authorised) but retained as a dormant, permission-configurable
+capability, with "based on N reviews" shown on every comparison for confidence context;
+breadcrumb drill-down; export architecture format-agnostic (CSV in v0.8, Excel/PDF ready);
+"Last refreshed" (GST) and "Filters applied" in every report header, both carried into
+exports. Performance/values separation absolute throughout; neutral language throughout.
+Decisions: recorded in the new docs/PRODUCT_DECISIONS.md (PD-001..PD-014 backfilled;
+PD-015 records the version renumber). Key: official-rating resolver seam so v0.9 moderated
+ratings drop in without reporting changes; moderation preserves the original manager rating
+and never overwrites it.
+UX FREEZE MILESTONE: following approval of the rev 3 design note, metric dictionary, and
+wireframes, the Reporting & Insights UX is FROZEN. No further redesign unless usability
+testing finds a genuine issue. Focus now: implementation quality, performance, testing,
+accessibility, documentation. (PD-009.)
+Product Decision Log created: docs/PRODUCT_DECISIONS.md is now the authoritative record of
+significant product/UX/architecture/data-model decisions. Going forward every significant
+decision is logged there, and the log is checked before any significant architectural
+change.
+Artifacts: docs/STAGE7_v0_8_DESIGN.md (rev 3), docs/STAGE7_v0_8_METRIC_DICTIONARY.md
+(rev 3), docs/PRODUCT_DECISIONS.md. No code yet.
+Next objective: Stage 7a (reporting query layer + Insight Rules config + three-question
+executive-summary engine + acceptance harness), stopping at the 7a gate.

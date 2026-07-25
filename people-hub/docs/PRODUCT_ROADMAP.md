@@ -11,10 +11,11 @@ through to the production gate. No real employee data before the production gate
 | Stage 3 | v0.4 | Annual Values Review | Complete |
 | Stage 4 | v0.5 | Year-End Summary | Complete, verified (pending approval) |
 | Stage 5 | v0.6 | Review Cycle & Year Management | Next (after quarterly rating definitions) |
-| — | v0.7 | HR Dashboard | Planned |
-| — | v0.8 | Reporting, Moderation & Calibration | Planned |
-| — | v0.9 | Notifications & Reminders (incl. review deadline locking) | Planned |
-| — | v0.10 | Historical Migration & Production Hardening (real auth, hosting, residency, DPIA; import of completed/historical performance reviews) | Planned (prototype→production gate) |
+| Stage 6 | v0.7 | HR Dashboard (Performance Operations Cockpit) | Complete, signed off |
+| Stage 7 | v0.8 | Reporting & Insights (incl. Manager Accountability View) | In progress (UX frozen) |
+| Stage 8 | v0.9 | Moderation & Calibration | Planned |
+| — | v0.10 | Notifications & Reminders (incl. review deadline locking) | Planned |
+| — | v0.11 | Historical Migration & Production Hardening (real auth, hosting, residency, DPIA; historical review import) | Planned (prototype→production gate) |
 | — | v1.0 | Production-Ready MVP | Planned |
 
 ## In progress (before v0.6)
@@ -34,13 +35,13 @@ Foundational: lets the tool run year over year.
   text label on each cycle).
 
 ## Standing deferred items (tracked in docs/FEATURE_BACKLOG.md)
-- Review deadline locking — approved, scheduled with Notifications (v0.9).
+- Review deadline locking — approved, scheduled with Notifications (v0.10).
 - Employee start date / applicable quarters — backlog (for true N/A on mid-year joiners).
 - Descriptive rating labels for the annual performance score — future policy decision.
 - Provisional neutral/semantic colours and Founders Grotesk webfont licence — pre-production.
 - "Reset" is satisfied by the existing reopen capability; no data-wipe feature will be
   built (retaining performance records is a PDPL/SAMA requirement).
-  - Manager Accountability View — future (v0.8+, Reporting/Insights). Operational patterns
+  - Manager Accountability View — included in v0.8 (Reporting & Insights). Operational patterns
   in manager participation/follow-through. Guardrails: not a manager-quality score, no
   league table, context/trends not punitive labels, any AI advisory and human-reviewed.
   Recorded pre-coding during v0.7; not built in v0.7. Detail in docs/FEATURE_BACKLOG.md.

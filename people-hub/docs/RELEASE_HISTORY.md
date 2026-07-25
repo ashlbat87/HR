@@ -12,14 +12,15 @@ narrative lives in docs/PROJECT_JOURNAL.md; approval detail in docs/APPROVALS.md
 | Stage 4 | v0.5 | Year-End Summary | Complete, approved |
 | Stage 5 (design) | v0.5.1 | Review Experience & Rating Design System | Complete, approved |
 | Stage 5 | v0.6 | Review Cycle & Period Management | Complete, approved |
-| Stage 6 | v0.7 | HR Dashboard (Performance Operations Cockpit) | Complete, verified |
-| — | v0.8 | Reporting, Moderation & Calibration (incl. Manager Accountability View) | Next |
-| — | v0.9 | Notifications & Reminders (incl. deadline locking) | Planned |
-| — | v0.10 | Historical Migration & Production Hardening (real auth, hosting, residency, DPIA; historical review import) | Planned (prototype→production gate) |
+| Stage 6 | v0.7 | HR Dashboard (Performance Operations Cockpit) | Complete, signed off |
+| Stage 7 | v0.8 | Reporting & Insights (incl. Manager Accountability View) | In progress (UX frozen) |
+| Stage 8 | v0.9 | Moderation & Calibration | Planned |
+| — | v0.10 | Notifications & Reminders (incl. review deadline locking) | Planned |
+| — | v0.11 | Historical Migration & Production Hardening (real auth, hosting, residency, DPIA; historical review import) | Planned (prototype→production gate) |
 | — | v1.0 | Production-Ready MVP | Planned |
 
-Prototype era: v0.1–v0.9 (fictional data, mock auth). Production transition: v0.10.
-Production: v1.0. No real employee data before v0.10.
+Prototype era: v0.1-v0.10 (fictional data, mock auth). Production transition: v0.11.
+Production: v1.0. No real employee data before v0.11.
 
 ## Point releases
 - v0.5.1 (Review Experience & Rating Design System): consolidates the review-experience
