@@ -1,3 +1,10 @@
+## [Unreleased] — Delete opened-in-error cycle
+Added: HR can delete a cycle opened by mistake, but only if it has no reviews
+(deleteEmptyCycle). A cycle with reviews cannot be deleted; it must be closed instead, so
+performance records are never destroyed (PDPL/SAMA). HR-only, refused in a completed
+period, audited. The delete control shows on the Review periods page only for empty cycles.
+Verified: Stage 5 acceptance 9/9 (adds the delete test); regressions 2:6/6 3:6/6 4:9/9.
+
 ## [0.7] — Stage 6 / Release v0.7: HR Dashboard (Performance Operations Cockpit) (COMPLETE)
 An operational cockpit answering, in ~10 seconds, where the current process is, where it
 is stuck, and what HR must do. Consolidates review administration: Review Admin retired.

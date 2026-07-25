@@ -8,6 +8,7 @@ import {
   openCycleInPeriod,
   completeReviewPeriod,
   createQuarterlyReviewsForCycle,
+  deleteEmptyCycle,
   saveEmployeeDraft,
   submitReview,
   managerOpen,
@@ -127,7 +128,25 @@ async function main() {
     try { await openCycleInPeriod(capP.id, "YEAR_END" as any, "YE2", hr); } catch (e) { if (e instanceof WorkflowError) secondYBlocked = true; }
     const pass = fifthQBlocked && thirdVBlocked && secondYBlocked;
     record({ name: "8. Cycle-type caps enforced (4 quarterly, 2 values, 1 year-end)", expected: "5th quarterly, 3rd values, 2nd year-end all blocked", actual: `5thQ=${fifthQBlocked}, 3rdV=${thirdVBlocked}, 2ndYE=${secondYBlocked}`, pass });
-  } catch (e: any) { record({ name: "8. Cycle-type caps", expected: "-", actual: "threw: " + e.message, pass: false }); }const passed = results.filter((r) => r.pass).length;
+  } catch (e: any) { record({ name: "8. Cycle-type caps", expected: "-", actual: "threw: " + e.message, pass: false }); }
+
+  // TEST 9 — deleteEmptyCycle: empty cycle deletes; cycle with reviews refuses.
+  try {
+    const dp = await createReviewPeriod("DELETE-TEST", hr);
+    const empty = await openCycleInPeriod(dp.id, "QUARTERLY" as any, "Empty Q", hr);
+    await deleteEmptyCycle(empty.id, hr);
+    const goneCheck = await prisma.reviewCycle.findUnique({ where: { id: empty.id } });
+    const emptyDeleted = goneCheck === null;
+    const withRev = await openCycleInPeriod(dp.id, "QUARTERLY" as any, "Has reviews Q", hr);
+    await createQuarterlyReviewsForCycle(withRev.id, hr);
+    let refused = false;
+    try { await deleteEmptyCycle(withRev.id, hr); } catch (e) { if (e instanceof WorkflowError) refused = true; }
+    const stillThere = await prisma.reviewCycle.findUnique({ where: { id: withRev.id } });
+    const pass = emptyDeleted && refused && stillThere !== null;
+    record({ name: "9. deleteEmptyCycle: empty deletes, cycle-with-reviews refused", expected: "empty gone; with-reviews refused and retained", actual: `emptyDeleted=${emptyDeleted}, refused=${refused}, retained=${stillThere !== null}`, pass });
+  } catch (e: any) { record({ name: "9. deleteEmptyCycle", expected: "-", actual: "threw: " + e.message, pass: false }); }
+
+  const passed = results.filter((r) => r.pass).length;
   console.log(`\n=== SUMMARY: ${passed}/${results.length} passed ===`);
   for (const r of results) console.log(`  ${r.pass ? "PASS" : "FAIL"}  ${r.name}`);
   await prisma.$disconnect();

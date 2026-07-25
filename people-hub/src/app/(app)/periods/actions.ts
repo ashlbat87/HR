@@ -8,6 +8,7 @@ import {
   openCycleInPeriod,
   completeReviewPeriod,
   WorkflowError,
+  deleteEmptyCycle,
 } from "@/modules/performance/review-workflow";
 import { isHR } from "@/core/access";
 import type { ReviewType, ReviewStatus } from "@prisma/client";
@@ -73,6 +74,19 @@ export async function completeReviewPeriodAction(periodId: string): Promise<Comp
   } catch (e) {
     if (e instanceof WorkflowError) return { error: e.message };
     console.error("completeReviewPeriodAction failed:", e);
+    return { error: "Something went wrong. Please try again." };
+  }
+}
+export async function deleteEmptyCycleAction(cycleId: string): Promise<ActionResult> {
+  const user = await getCurrentUser();
+  if (!user || !isHR(user)) return { error: "HR access required." };
+  try {
+    await deleteEmptyCycle(cycleId, user);
+    revalidatePath("/periods");
+    return { ok: true };
+  } catch (e) {
+    if (e instanceof WorkflowError) return { error: e.message };
+    console.error("deleteEmptyCycleAction failed:", e);
     return { error: "Something went wrong. Please try again." };
   }
 }

@@ -704,3 +704,28 @@ export async function completeReviewPeriod(
   await recordAudit({ actorEmail: actor.email, action: "period.complete", entityType: "ReviewPeriod", entityId: periodId, detail: "label=" + period.label + ", cycles=" + cycleIds.length });
   return { ok: true };
 }
+// Delete a cycle opened in error. Allowed ONLY when the cycle has no reviews, so no
+// assessment data can ever be destroyed. A cycle with reviews must be closed instead
+// (PDPL/SAMA: retain performance records). HR-only, refused in a completed period, audited.
+export async function deleteEmptyCycle(cycleId: string, actor: AuthUser): Promise<void> {
+  if (!isHR(actor)) throw new WorkflowError("Only HR can delete a cycle.");
+  const cycle = await prisma.reviewCycle.findUnique({
+    where: { id: cycleId },
+    include: { period: true, _count: { select: { reviews: true } } },
+  });
+  if (!cycle) throw new WorkflowError("Cycle not found.");
+  if (cycle.period && cycle.period.status === "COMPLETED") {
+    throw new WorkflowError("Cannot change a completed period.");
+  }
+  if (cycle._count.reviews > 0) {
+    throw new WorkflowError("This cycle has reviews and cannot be deleted. Close it instead to keep the records.");
+  }
+  await prisma.reviewCycle.delete({ where: { id: cycleId } });
+  await recordAudit({
+    actorEmail: actor.email,
+    action: "cycle.delete_empty",
+    entityType: "ReviewCycle",
+    entityId: cycleId,
+    detail: "type=" + cycle.type + ", label=" + cycle.label,
+  });
+}

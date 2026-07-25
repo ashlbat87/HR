@@ -6,6 +6,7 @@ import {
   setCurrentPeriodAction,
   openCycleInPeriodAction,
   completeReviewPeriodAction,
+  deleteEmptyCycleAction,
 } from "./actions";
 
 const TYPE_LABEL: Record<string, string> = {
@@ -148,5 +149,24 @@ export function CompletePeriod({ periodId, label }: { periodId: string; label: s
         })()
       ) : null}
     </div>
+  );
+}
+export function DeleteCycle({ cycleId, label }: { cycleId: string; label: string }) {
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  async function go() {
+    if (!confirm(`Delete the empty cycle "${label}"? This can't be undone.`)) return;
+    setBusy(true); setErr(null);
+    const res = await deleteEmptyCycleAction(cycleId);
+    setBusy(false);
+    if ("error" in res) setErr(res.error);
+  }
+  return (
+    <span style={{ marginLeft: 8 }}>
+      <button className="btn secondary" onClick={go} disabled={busy} style={{ fontSize: 12, padding: "2px 8px" }}>
+        {busy ? "Deleting…" : "Delete"}
+      </button>
+      {err ? <span className="chip status-overdue" style={{ marginLeft: 8 }}>{err}</span> : null}
+    </span>
   );
 }

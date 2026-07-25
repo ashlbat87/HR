@@ -4,7 +4,7 @@ import { getCurrentUser } from "@/core/auth";
 import { isHR } from "@/core/access";
 import { redirect } from "next/navigation";
 import { prisma } from "@/shared/lib/prisma";
-import { StartPeriod, SetCurrent, OpenCycle, CompletePeriod } from "./PeriodControls";
+import { StartPeriod, SetCurrent, OpenCycle, CompletePeriod, DeleteCycle } from "./PeriodControls";
 import { CreateCycleReviews } from "../reviews/CreateCycleReviews";
 
 const TYPE_LABEL: Record<string, string> = {
@@ -68,6 +68,7 @@ export default async function PeriodsPage() {
                         <span className="muted">{c.label}</span>
                         <span className="muted">· {c._count.reviews} review{c._count.reviews === 1 ? "" : "s"}</span>
                         {c.isOpen ? <span className="chip status-completed">Open</span> : <span className="chip">Closed</span>}
+                        {c._count.reviews === 0 && !completed ? <DeleteCycle cycleId={c.id} label={c.label} /> : null}
                       </div>
                       {c.isOpen && !completed ? (
                         <div style={{ marginTop: 6 }}>
