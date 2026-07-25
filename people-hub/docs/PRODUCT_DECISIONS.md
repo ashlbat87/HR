@@ -176,3 +176,30 @@ why decisions were made.
 - Impact: PRODUCT_ROADMAP.md and RELEASE_HISTORY.md tables updated; stale "v0.10 production
   gate" references in APPROVALS.md and FEATURE_BACKLOG.md corrected to v0.11.
 - Status: Active. Applies-from: roadmap sequencing from v0.8 onward.
+
+## PD-016 — Rating distribution methodology: per-review headline, rounded half-up
+- Date: 24 July 2026
+- Decision: a "rating distribution" places one data point per review = that review's
+  official score (mean of the manager-side item scores for the dimension) rounded half-up
+  to a 1-5 level. The "average" metric uses the precise (unrounded) mean; only the
+  distribution buckets use the rounded level. Performance and values computed separately.
+- Rationale: calibration and moderation operate on a person's overall rating, so one
+  review = one data point is the meaningful unit (not per-item scores, which multiply
+  people by item count). Precise average + rounded buckets keeps both accurate.
+- Alternatives considered: distributing individual item scores (rejected: not "how are
+  people rated", and distorts by item count).
+- Impact: computeDistribution in reporting-queries.ts; documented in the metric dictionary.
+- Status: Active. Applies-from: v0.8 reporting.
+
+## PD-017 — Reporting tests use an isolated fixture, not the application seed
+- Date: 24 July 2026
+- Decision: the reporting acceptance harness builds its own controlled fixture (completed
+  reviews with known scores, gaps, groups, and completion-time events), asserts against
+  hand-computed expected values, and tears the fixture down. It does not rely on or modify
+  the application seed.
+- Rationale: the app seed exists for workflow testing/exploration; reporting assertions
+  must be deterministic against known answers, and expanding the seed for reporting could
+  disturb other modules, dashboards, and harnesses.
+- Impact: scripts/stage7a-acceptance.ts is self-contained; a future optional "reporting
+  demo seed" (for 7b demos) would be separate from both the app seed and this fixture.
+- Status: Active. Applies-from: v0.8 reporting tests onward.
