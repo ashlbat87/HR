@@ -1,3 +1,20 @@
+## [0.7] — Stage 6 / Release v0.7: HR Dashboard (Performance Operations Cockpit) (COMPLETE)
+An operational cockpit answering, in ~10 seconds, where the current process is, where it
+is stuck, and what HR must do. Consolidates review administration: Review Admin retired.
+Full record: docs/STAGE6_v0_7_ACCEPTANCE.md. Design: docs/STAGE6_v0_7_DESIGN.md.
+### Added
+- Dashboard query helpers (dashboard-queries.ts): per-cycle stage-aware status summary derived from the real workflow, a filtered-reviews drill-down query, and setup-issue queries (missing manager/guide, hierarchy root excluded).
+- HR Dashboard sections: active-period banner (+ Manage periods), Current period health (per cycle, stage-aware, with a derived bottleneck line), Needs Attention (process exceptions), Setup Issues (data-quality) as a separate section.
+- Filtered review browser (/reviews-browse): period/type/cycle/stage filters and data-quality (missing manager/guide) employee views; opens reviews via /reviews/[id] so the reopen path is preserved.
+- Every dashboard number links to its exact filtered list; a "Browse all reviews" entry point on the dashboard and in the nav.
+### Changed
+- Generic employee headcounts removed from the dashboard (they belong in the Directory).
+### Removed
+- Review Admin page retired after a parity checklist confirmed the dashboard, /periods, and /reviews-browse cover every task it provided. Nav is now HR Dashboard / Browse reviews / Review periods.
+### Verification
+- Regression Stage 2 6/6, Stage 3 6/6, Stage 4 9/9, Stage 5 8/8; 6a consistency check; typecheck clean; manual UI walk-through. Prototype release; fictional data only.
+### Deferred (backlogged)
+- In-app employee editing (assign rating guide/manager); delete opened-in-error empty cycle; Manager Accountability View (v0.8+); deadline-aware "stuck" states (v0.9).
 ## [0.6] — Stage 5 / Release v0.6: Review Cycle & Period Management (COMPLETE)
 A review period becomes a first-class entity, letting the Hub run period over period.
 Full record: docs/STAGE5_v0_6_ACCEPTANCE.md. Design: docs/STAGE5_v0_6_DESIGN.md.

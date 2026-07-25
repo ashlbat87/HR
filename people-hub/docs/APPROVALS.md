@@ -143,3 +143,31 @@
   to a later hardening pass. Tracked in docs/FEATURE_BACKLOG.md.
 - **Prototype release:** fictional data, mock auth. No real data before the production
   gate (v0.10).
+
+## Stage 6 / Release v0.7 (HR Dashboard — Performance Operations Cockpit) — COMPLETE and ACCEPTED
+
+- **Status:** Complete and accepted.
+- **Approved by:** Ash (Head of People).
+- **Date:** 22 July 2026.
+- **Design note approved before build:** docs/STAGE6_v0_7_DESIGN.md (with refinements).
+- **Verification:** Regression Stage 2 6/6, Stage 3 6/6, Stage 4 9/9, Stage 5 8/8 (all
+  re-run after v0.7); 6a consistency check (stage sums = totals, filtered-list counts =
+  summary counts, setup-issue counts correct with hierarchy root excluded); typecheck
+  clean; manual UI walk-through by Ash. Full record: docs/STAGE6_v0_7_ACCEPTANCE.md.
+- **Delivered:** dashboard query helpers (per-cycle stage-aware summary from the real
+  workflow, filtered-reviews drill-down, setup-issue queries); HR Dashboard sections
+  (active period, Current period health, Needs Attention, Setup Issues) with generic
+  headcounts removed; filtered review browser (/reviews-browse) with period/type/cycle/
+  stage and data-quality views; every dashboard number links to its exact list.
+- **Consolidation:** Review Admin retired AFTER an explicit parity checklist confirmed
+  the dashboard, /periods, and /reviews-browse cover every task it provided (generate
+  reviews; browse all; open/reopen including archived year-end). Nav is now HR Dashboard
+  / Browse reviews / Review periods.
+- **Decisions (approved):** stage-aware per real workflow; "stuck" = accumulation by
+  stage (no late/overdue pre-deadlines); Needs Attention and Setup Issues as separate
+  sections; derived per-cycle bottleneck line (no AI); period management kept separate.
+- **Deferred (backlogged):** in-app employee editing (assign rating guide/manager);
+  delete opened-in-error empty cycle; Manager Accountability View (v0.8+); deadline-aware
+  states (v0.9). Architected so v0.8 Insights/Moderation reuses the same query helpers.
+- **Prototype release:** fictional data, mock auth. No real data before the production
+  gate (v0.10).
