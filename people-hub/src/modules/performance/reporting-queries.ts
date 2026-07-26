@@ -360,3 +360,46 @@ export function buildExecutiveSummary(inp: SummaryInputs): ExecutiveSummary {
   if (!anyRule) s.whatToDo.push("No immediate investigation is recommended.");
   return s;
 }
+
+// Median and mode for a distribution (rev 4 KPI strip). Median uses precise official
+// scores; mode is the level (1..5) with the highest count.
+export function computeMedianOfficial(data: ReviewDatum[]): number | null {
+  return median(data.map((d) => getOfficialScore(d)));
+}
+
+export function computeModeLevel(dist: Distribution): (1 | 2 | 3 | 4 | 5) | null {
+  if (dist.total === 0) return null;
+  let best: 1 | 2 | 3 | 4 | 5 = 1;
+  for (const l of [1, 2, 3, 4, 5] as const) if (dist.counts[l] > dist.counts[best]) best = l;
+  return best;
+}
+
+// Drill-down: the reviews whose official score rounds to a given level, for a scope +
+// dimension. Count equals the distribution bar for that level (same rounding, PD-016).
+export interface DrillReview {
+  reviewId: string;
+  employeeName: string;
+  managerName: string;
+  department: string | null;
+  officialScore: number;
+}
+
+export function reviewsInBucket(data: ReviewDatum[], level: number): DrillReview[] {
+  const out: DrillReview[] = [];
+  for (const d of data) {
+    let lvl = roundHalfUp(getOfficialScore(d));
+    if (lvl < 1) lvl = 1;
+    if (lvl > 5) lvl = 5;
+    if (lvl === level) {
+      out.push({
+        reviewId: d.reviewId,
+        employeeName: d.employeeName,
+        managerName: d.managerName,
+        department: d.department,
+        officialScore: getOfficialScore(d),
+      });
+    }
+  }
+  out.sort((a, b) => a.employeeName.localeCompare(b.employeeName));
+  return out;
+}

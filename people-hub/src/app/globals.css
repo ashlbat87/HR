@@ -140,3 +140,6 @@ button:disabled, .btn:disabled { background: var(--n20); color: var(--n50); curs
 /* Consistent comment-box sizing (design system: one way to do a thing) */
 textarea { min-height: 88px; resize: vertical; width: 100%; }
 label.field textarea { min-height: 88px; }
+
+/* Reporting distribution bars — drill-down affordance (v0.8). */
+a:hover > .bar-drill { opacity: 0.7; }

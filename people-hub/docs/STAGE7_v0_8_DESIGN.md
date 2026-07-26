@@ -1,4 +1,4 @@
-# Release v0.8 (Stage 7) — Reporting & Insights (HR Insights Hub): Design Note (rev 3, UX FROZEN)
+# Release v0.8 (Stage 7) — Reporting & Insights (HR Insights Hub): Design Note (rev 4, UX FROZEN)
 
 Status: UX FROZEN (approved by Ash). Implementation may proceed. After this rev, no
 further UX redesign unless testing identifies a genuine usability issue; focus is
@@ -45,6 +45,9 @@ peer report, kept visually and conceptually separate from rating reports.
 - Which departments differ from the organisation?
 - Which functions differ from the organisation? (rating-guide category)
 - How do rating distributions vary by manager?
+- How do ratings vary by performance criterion? (comparison family; analyses the
+  individual performance criteria Impact/Quality/Delivery, separate from the overall
+  rating)
 - How complete is the current process? (completion & participation)
 - How are managers participating and following through? (Manager Accountability)
 
@@ -81,8 +84,18 @@ in one module; reporting/summary code reads it, never embeds literals.
 
 ## 6. Performance reporting
 Distribution of official performance ratings (1..5, RATING_LABELS) across the filtered
-population. Count and % per level, average, % at 4-5, % at 1-2, difference from org, and
-difference from previous cycle where data exists. Executive summary + neutral signals.
+population. Executive summary + neutral signals.
+Distribution-view layout (rev 4 refinements, from usability review):
+- The chart is the hero. The Executive Summary above it is concise (short lines) so the
+  chart is reached quickly; "Last refreshed" is quiet page metadata, not competing with
+  the title.
+- A compact KPI strip sits directly above the chart: Average | Median | Most Common |
+  % Rated 4-5 | Completed Reviews. Average and Median use the precise official scores;
+  Most Common (mode) is the level with the highest count, shown as its RATING_LABEL (e.g.
+  "Advanced"); Completed Reviews is the population size.
+- Drill-down is real, not decorative: each rating bar is clickable (hover state, pointer
+  cursor, tooltip "Click to view underlying reviews", and helper text beneath the chart).
+  Clicking a bar opens the underlying reviews that make up that bucket (see section 12).
 
 ## 7. Values reporting
 Same shape, computed on values ratings, on a separate view. Never combined with
@@ -101,6 +114,22 @@ neutral terms. NO population-size suppression in v0.8 (see section 15).
 Distribution/average of official ratings by manager, % at 4-5, difference from org.
 Neutral language; never labels a manager. Drill-down to the manager's underlying reviews.
 
+## 10a. Performance criterion analysis (comparison family)
+"How do ratings vary by performance criterion?" Part of the comparison family (department/
+function/manager/criterion all answer "where do patterns differ?"). SEPARATE from the
+overall Performance Distribution report, which stays focused on the official overall
+rating. Criterion analysis reads the individual MANAGER-side item scores (Impact, Quality,
+Delivery) directly, NOT through the official-rating resolver, so it is one level below the
+headline rating. Per criterion, v1 shows: average rating; rating distribution (1..5); %
+rated 4-5; and the number of completed reviews contributing (counted per criterion
+honestly). Each criterion drills down to the underlying reviews, same pattern as other
+reports. Neutral language only ("The average Quality rating is 3.2", never "Quality is
+weak"). Performance and values stay separate (PD-001): a future Values equivalent would
+analyse the four organisational values independently and never combine or compare them
+with performance criteria. Note (semantic): criterion figures reflect the original manager
+item scores; v0.9 moderation adjusts the overall rating, not individual criteria, so
+criterion analysis is unaffected by moderation.
+
 ## 11. Manager Accountability View (participation/process only)
 Separate view. Measures: reviews awaiting each manager; completion percentage; median
 review completion time (where timestamps support it, else "not available"); reopened
@@ -113,8 +142,13 @@ conceptually distinct from rating calibration.
 ## 12. Filters, drill-down, and the navigation path
 Common filters: period, cycle/review type, department, function, manager. Every figure
 drills to the underlying reviews. A breadcrumb always shows position, e.g.:
-  Reporting & Insights > Performance distribution > Engineering > Advanced > Employees.
-Drill-down reuses the v0.7 filtered-browser pattern where possible.
+  Reporting & Insights > Performance distribution > Advanced > Employees.
+Distribution drill-down (rev 4, implemented from first release of the distribution view):
+clicking a rating bar opens a reporting drill-down list of exactly the reviews whose
+official rating rounds to that level (same rounding as the bar, PD-016), for the current
+dimension and scope, each linking to /reviews/[id]. Reporting drill-down is a small
+self-contained view (not the /reviews-browse page) so it can carry reporting context and
+be extended by later reports (7c/7e). The bucket list count always equals the bar count.
 
 ## 12a. Last refreshed
 Every reporting page header shows when the data was generated, e.g. "Last refreshed:
