@@ -1,4 +1,4 @@
-# Release v0.8 (Stage 7) — Reporting & Insights (HR Insights Hub): Design Note (rev 4, UX FROZEN)
+# Release v0.8 (Stage 7) — Reporting & Insights (HR Insights Hub): Design Note (rev 5, UX FROZEN)
 
 Status: UX FROZEN (approved by Ash). Implementation may proceed. After this rev, no
 further UX redesign unless testing identifies a genuine usability issue; focus is
@@ -48,6 +48,10 @@ peer report, kept visually and conceptually separate from rating reports.
 - How do ratings vary by performance criterion? (comparison family; analyses the
   individual performance criteria Impact/Quality/Delivery, separate from the overall
   rating)
+(Note: the "function" comparison was removed — rating-guide category equals department at
+Tarabut, so it was redundant. Reports are time-scoped per docs/REPORTING_TIME_SCOPING_DESIGN.md
+(rev 5): default to the latest meaningful cycle, per-report timeframe filter, opt-in full
+year with explicit pooling, values full-year only when >1 values cycle exists.)
 - How complete is the current process? (completion & participation)
 - How are managers participating and following through? (Manager Accountability)
 

@@ -261,3 +261,41 @@ why decisions were made.
 - Rationale: reflect the approved new stage in a coherent sequence.
 - Impact: PRODUCT_ROADMAP.md and RELEASE_HISTORY.md updated; stale gate references corrected.
 - Status: Active. Applies-from: roadmap sequencing.
+
+## PD-023 — Reporting time scoping: default to a cycle, opt-in full year, per-report filter
+- Date: 24 July 2026
+- Decision: reports scope to a single CYCLE by default (one quarter for performance; one
+  values cycle for values), not the whole period. A per-report, first-class timeframe filter
+  (not a status label) lets users choose a cycle or "Full year"; only cycles that exist for
+  the report's dimension are offered. The selection is carried in the URL (consistent across
+  reports, shareable, inherited by drill-down). Reporting is limited to QUARTERLY
+  (performance) and ANNUAL_VALUES (values); YEAR_END is excluded from analytical reporting.
+  Full year for values is offered only when more than one values cycle exists in the period.
+- Rationale: pooling all cycles silently (the previous behaviour) hid per-quarter trends and
+  conflated performance's quarterly cadence with values' less frequent cadence.
+- Impact: retrofit of distribution, comparison, landing, and drill-down; the 7a query layer
+  already accepts cycleId/periodId, so mostly wiring.
+- Status: Active. Applies-from: v0.8 reporting (retrofit before further reports).
+
+## PD-024 — Reporting default is the latest MEANINGFUL cycle (configurable threshold)
+- Date: 24 July 2026
+- Decision: a report defaults to the latest MEANINGFUL cycle of its dimension, not simply the
+  newest. If the newest cycle has only just opened with insufficient completed reviews, the
+  default stays on the latest COMPLETED cycle until the active cycle reaches a completion
+  threshold. The threshold is CONFIGURABLE (owned like the Insight Rules), not hard-coded as
+  a percentage; a sensible default is chosen at build and recorded.
+- Rationale: prevents a report defaulting to a near-empty, just-opened quarter that reads as
+  broken; HR still can select the active cycle explicitly.
+- Impact: the default-cycle resolution in the reporting scope layer.
+- Status: Active. Applies-from: v0.8 reporting.
+
+## PD-025 — Pooling is never silent
+- Date: 24 July 2026
+- Decision: whenever reporting combines multiple cycles into a Full Year view, the UI must
+  explicitly state the report is based on pooled data. Every report must always make the
+  timeframe, population, and reporting dimension clear to the user.
+- Rationale: users must always understand exactly what they are analysing; silent pooling
+  misleads.
+- Impact: Full Year views carry an explicit pooled-data statement; all reports show
+  timeframe + population ("based on N") + dimension.
+- Status: Active. Applies-from: v0.8 reporting onward.
