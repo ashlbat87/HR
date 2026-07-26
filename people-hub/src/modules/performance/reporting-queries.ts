@@ -403,3 +403,25 @@ export function reviewsInBucket(data: ReviewDatum[], level: number): DrillReview
   out.sort((a, b) => a.employeeName.localeCompare(b.employeeName));
   return out;
 }
+
+// Drill-down by group (department / func / manager). Returns the reviews in a group, using
+// the same ReviewDatum fields the comparison view grouped on. For managers, key = managerId.
+export function reviewsInGroup(data: ReviewDatum[], groupBy: GroupBy, key: string): DrillReview[] {
+  const out: DrillReview[] = [];
+  for (const d of data) {
+    const gk = groupBy === "department" ? (d.department ?? "__unassigned__")
+      : groupBy === "func" ? (d.func ?? "__unassigned__")
+      : d.managerId;
+    if (gk === key) {
+      out.push({
+        reviewId: d.reviewId,
+        employeeName: d.employeeName,
+        managerName: d.managerName,
+        department: d.department,
+        officialScore: getOfficialScore(d),
+      });
+    }
+  }
+  out.sort((a, b) => a.employeeName.localeCompare(b.employeeName));
+  return out;
+}
