@@ -15,12 +15,13 @@ narrative lives in docs/PROJECT_JOURNAL.md; approval detail in docs/APPROVALS.md
 | Stage 6 | v0.7 | HR Dashboard (Performance Operations Cockpit) | Complete, signed off |
 | Stage 7 | v0.8 | Reporting & Insights (incl. Manager Accountability View) | In progress (UX frozen) |
 | Stage 8 | v0.9 | Moderation & Calibration | Planned |
-| — | v0.10 | Notifications & Reminders (incl. review deadline locking) | Planned |
-| — | v0.11 | Historical Migration & Production Hardening (real auth, hosting, residency, DPIA; historical review import) | Planned (prototype→production gate) |
+| Stage 9 | v0.10 | Strategic Alignment (Objectives & OKRs; read-first) | Approved — not yet scheduled |
+| — | v0.11 | Notifications & Reminders (incl. review deadline locking) | Planned |
+| — | v0.12 | Historical Migration & Production Hardening (real auth, hosting, residency, DPIA; historical review import) | Planned (prototype→production gate) |
 | — | v1.0 | Production-Ready MVP | Planned |
 
-Prototype era: v0.1-v0.10 (fictional data, mock auth). Production transition: v0.11.
-Production: v1.0. No real employee data before v0.11.
+Prototype era: v0.1-v0.11 (fictional data, mock auth). Production transition: v0.12.
+Production: v1.0. No real employee data before v0.12.
 
 ## Point releases
 - v0.5.1 (Review Experience & Rating Design System): consolidates the review-experience

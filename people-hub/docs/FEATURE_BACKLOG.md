@@ -114,7 +114,7 @@ Do properly, not as a quick control:
 - Access control (who may edit employee records) and server-side guards.
 - Audit logging of every change (actor, field, old/new value) — PDPL/SAMA defensibility.
 - Validation (valid rating-guide category; manager exists; no self-manager/cycles).
-Placement: its own small stage, or bundle with v0.11 production hardening. Not in v0.7.
+Placement: its own small stage, or bundle with v0.12 production hardening. Not in v0.7.
 Note: the dashboard flag itself is correct and useful; this is about the fix path.
 
 ## Delete an opened-in-error cycle (empty cycles only) [requested during v0.7]

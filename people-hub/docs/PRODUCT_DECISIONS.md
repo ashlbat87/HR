@@ -203,3 +203,61 @@ why decisions were made.
 - Impact: scripts/stage7a-acceptance.ts is self-contained; a future optional "reporting
   demo seed" (for 7b demos) would be separate from both the app seed and this fixture.
 - Status: Active. Applies-from: v0.8 reporting tests onward.
+
+## PD-018 — Reporting analytics layering model (Outcome / Diagnostic / Behaviour)
+- Date: 24 July 2026
+- Decision: the reporting suite is organised into three distinct analytical layers, kept
+  conceptually and visually separate: (1) Outcome — the overall official rating ("who is
+  performing"; moderated in v0.9); (2) Diagnostic — the performance criteria Impact/Quality/
+  Delivery ("why they perform that way"; read from item scores, NOT moderated); (3)
+  Behaviour — the values ("how they behave"; separate from performance). No report blends
+  layers. New reports declare which layer they serve.
+- Rationale: the layers answer fundamentally different questions; blending is a category
+  error and would undermine PD-001. The model keeps the growing suite coherent.
+- Impact: governs report design in v0.8+; criterion analysis is the first Diagnostic report.
+- Status: Active. Applies-from: v0.8 reporting onward.
+
+## PD-019 — Strategic Alignment: OKR quarters tie to review periods (no parallel calendar)
+- Date: 24 July 2026
+- Decision: an OkrQuarter links to an existing ReviewPeriod so "the OKRs for this review"
+  resolves deterministically (a Q2 2026 review surfaces the Q2 2026 OKRs). The module does
+  not invent an independent OKR calendar.
+- Rationale: two sources of "what quarter is it" would risk mismatch at exactly the review-
+  integration point that matters most.
+- Alternatives considered: standalone OKR calendar (rejected: drift/mismatch risk).
+- Impact: shapes the Strategic Alignment data model and the review integration.
+- Status: Active (approved). Applies-from: governs the Strategic Alignment stage (v0.10),
+  not yet built.
+
+## PD-020 — Strategic Alignment OKRs are context-only
+- Date: 24 July 2026
+- Decision: OKRs surfaced in the review provide CONTEXT for the contribution answer only.
+  They are never scored, never blended into ratings, and never alter the review workflow or
+  its states. Permanent invariant.
+- Rationale: protects the integrity of the reviewed-and-signed-off review workflow as the
+  alignment module grows; keeps ratings clean (reinforces PD-001/PD-002).
+- Impact: the review integration is a read-only panel; no workflow or rating change.
+- Status: Active (approved). Applies-from: governs the Strategic Alignment stage (v0.10).
+
+## PD-021 — Strategic Alignment is read-first before write-first
+- Date: 24 July 2026
+- Decision: v1 of Strategic Alignment is a single source of truth for organisational
+  objectives to improve alignment throughout the quarter. It is intentionally NOT an OKR
+  management system, progress-tracking tool, or employee goal-setting module. Any future
+  progress tracking or individual objective management is a SEPARATE product decision, not
+  an incremental addition to this module.
+- Rationale: scope discipline; prevents the module sprawling into a full OKR-management
+  suite before the read-first value is delivered and validated.
+- Impact: v1 scope is define/manage/view/surface-in-review only; ambitious capabilities are
+  future and separately decided.
+- Status: Active (approved). Applies-from: Strategic Alignment stage (v0.10).
+
+## PD-022 — Roadmap: Strategic Alignment inserted at v0.10; later releases renumbered
+- Date: 24 July 2026
+- Decision: Strategic Alignment is inserted after v0.9 as v0.10 (Approved — not yet
+  scheduled). Notifications & Reminders moves to v0.11; Historical Migration & Production
+  Hardening moves to v0.12; v1.0 unchanged. Prototype era now v0.1-v0.11; production
+  transition v0.12.
+- Rationale: reflect the approved new stage in a coherent sequence.
+- Impact: PRODUCT_ROADMAP.md and RELEASE_HISTORY.md updated; stale gate references corrected.
+- Status: Active. Applies-from: roadmap sequencing.

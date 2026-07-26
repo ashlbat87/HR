@@ -142,7 +142,7 @@
   to v0.7 (dashboard must first provide review status / browse-all); periodId tightening
   to a later hardening pass. Tracked in docs/FEATURE_BACKLOG.md.
 - **Prototype release:** fictional data, mock auth. No real data before the production
-  gate (v0.11).
+  gate (v0.12).
 
 ## Stage 6 / Release v0.7 (HR Dashboard — Performance Operations Cockpit) — COMPLETE and ACCEPTED
 
@@ -170,4 +170,4 @@
   delete opened-in-error empty cycle; Manager Accountability View (v0.8+); deadline-aware
   states (v0.9). Architected so v0.8 Insights/Moderation reuses the same query helpers.
 - **Prototype release:** fictional data, mock auth. No real data before the production
-  gate (v0.11).
+  gate (v0.12).

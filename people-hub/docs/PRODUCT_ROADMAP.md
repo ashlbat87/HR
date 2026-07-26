@@ -14,8 +14,9 @@ through to the production gate. No real employee data before the production gate
 | Stage 6 | v0.7 | HR Dashboard (Performance Operations Cockpit) | Complete, signed off |
 | Stage 7 | v0.8 | Reporting & Insights (incl. Manager Accountability View) | In progress (UX frozen) |
 | Stage 8 | v0.9 | Moderation & Calibration | Planned |
-| — | v0.10 | Notifications & Reminders (incl. review deadline locking) | Planned |
-| — | v0.11 | Historical Migration & Production Hardening (real auth, hosting, residency, DPIA; historical review import) | Planned (prototype→production gate) |
+| Stage 9 | v0.10 | Strategic Alignment (Objectives & OKRs; read-first source of truth, review integration) | Approved — not yet scheduled |
+| — | v0.11 | Notifications & Reminders (incl. review deadline locking) | Planned |
+| — | v0.12 | Historical Migration & Production Hardening (real auth, hosting, residency, DPIA; historical review import) | Planned (prototype→production gate) |
 | — | v1.0 | Production-Ready MVP | Planned |
 
 ## In progress (before v0.6)
@@ -35,7 +36,7 @@ Foundational: lets the tool run year over year.
   text label on each cycle).
 
 ## Standing deferred items (tracked in docs/FEATURE_BACKLOG.md)
-- Review deadline locking — approved, scheduled with Notifications (v0.10).
+- Review deadline locking — approved, scheduled with Notifications (v0.11).
 - Employee start date / applicable quarters — backlog (for true N/A on mid-year joiners).
 - Descriptive rating labels for the annual performance score — future policy decision.
 - Provisional neutral/semantic colours and Founders Grotesk webfont licence — pre-production.
