@@ -10,6 +10,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/shared/lib/prisma";
 import { GlobalSearch } from "@/shared/components/GlobalSearch";
+import { NavLinks } from "./NavLinks";
 
 async function signOutAction() {
   "use server";
@@ -62,21 +63,7 @@ export default async function AppLayout({
 
       <div className="layout">
         <nav className="nav">
-          <Link href="/reviews">My Reviews</Link>
-          {manager && <Link href="/team">My Team</Link>}
-          {hr && <Link href="/dashboard">HR Dashboard</Link>}
-          {hr && <Link href="/reviews-browse">Browse reviews</Link>}
-          {hr && <Link href="/periods">Review periods</Link>}
-          {hr && <Link href="/reporting">Reporting & Insights</Link>}
-          {hr && <Link href="/directory">Employee Directory</Link>}
-          <Link
-            href="/notifications"
-            className={notifs > 0 ? "badge" : ""}
-            data-count={notifs > 0 ? String(notifs) : ""}
-          >
-            Notifications
-          </Link>
-          {hrAdmin && <Link href="/import">Employee Import</Link>}
+          <NavLinks manager={manager} hr={hr} hrAdmin={hrAdmin} notifs={notifs} />
           {/* Reports, Cycles, Guides, Admin appear in later stages */}
         </nav>
         <main className="content">{children}</main>
