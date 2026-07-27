@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/core/auth";
 import { isHR } from "@/core/access";
 import { redirect } from "next/navigation";
 import { prisma } from "@/shared/lib/prisma";
+import { resolveScope, scopeToQuery } from "@/modules/performance/reporting-scope";
 import Link from "next/link";
 import {
   getReviewData, reviewsInBucket, reviewsInGroup,
@@ -26,10 +27,9 @@ export default async function ReportingDrilldownPage({ searchParams }: { searchP
   const sp = await searchParams;
   const dimension = (sp.dimension === "VALUES" ? "VALUES" : "PERFORMANCE") as RatingDimension;
   const dimLabel = dimension === "PERFORMANCE" ? "Performance" : "Values";
-  const periodId = sp.period;
-  const scope = periodId ? { periodId } : {};
-  const period = periodId ? await prisma.reviewPeriod.findUnique({ where: { id: periodId }, select: { label: true } }) : null;
-  const data = await getReviewData(dimension, scope);
+  const scope = await resolveScope(dimension, { cycle: sp.cycle, scope: sp.scope, period: sp.period });
+  const data = scope ? await getReviewData(dimension, scopeToQuery(scope)) : [];
+  const scopeLabel = !scope ? "current" : scope.kind === "cycle" ? scope.cycleLabel : `Full year ${scope.periodLabel}`;
 
   const groupBy = (sp.group === "department" || sp.group === "func" || sp.group === "manager") ? (sp.group as GroupBy) : null;
   const groupValue = sp.value;
@@ -47,7 +47,7 @@ export default async function ReportingDrilldownPage({ searchParams }: { searchP
     heading = `${displayValue} — ${dimLabel.toLowerCase()} reviews`;
     breadcrumbTail = (<><Link href={back.href}>{back.label}</Link> › {displayValue}</>);
     filterChips = (<>
-      <span className="chip">Period: {period ? period.label : "current"}</span>
+      <span className="chip">Timeframe: {scopeLabel}</span>
       <span className="chip">Type: {dimLabel}</span>
       <span className="chip">{back.noun}: {displayValue}</span>
     </>);
@@ -58,7 +58,7 @@ export default async function ReportingDrilldownPage({ searchParams }: { searchP
     heading = `${LEVEL_LABEL[level]} ${dimLabel.toLowerCase()} ratings`;
     breadcrumbTail = (<><Link href={back}>{dimLabel} distribution</Link> › {LEVEL_LABEL[level]}</>);
     filterChips = (<>
-      <span className="chip">Period: {period ? period.label : "current"}</span>
+      <span className="chip">Timeframe: {scopeLabel}</span>
       <span className="chip">Type: {dimLabel}</span>
       <span className="chip">Rating: {LEVEL_LABEL[level]}</span>
     </>);

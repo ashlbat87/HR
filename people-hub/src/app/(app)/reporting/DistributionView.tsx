@@ -1,14 +1,15 @@
-// Shared distribution view (v0.8, Stage 7b, rev 4). Chart is the hero; concise Executive
-// Summary; KPI strip (Average | Median | Most Common | % Rated 4-5 | Completed Reviews);
-// clickable bars drill to the underlying reviews; quiet metadata. Built to the frozen
-// design note rev 4 (PD-009). HR-guarded by the calling page.
+// Shared distribution view (v0.8, Stage 7b rev 4, 7c time-scoping). Chart is the hero;
+// concise Executive Summary; KPI strip; clickable bars drill to underlying reviews; quiet
+// metadata; first-class timeframe selector (PD-023); explicit pooled statement on full year
+// (PD-025). HR-guarded by the calling page.
 
 import Link from "next/link";
-import { prisma } from "@/shared/lib/prisma";
 import {
   getReviewData, computeDistribution, computeGap, computeGroupComparison,
   buildExecutiveSummary, computeMedianOfficial, computeModeLevel, type RatingDimension,
 } from "@/modules/performance/reporting-queries";
+import { resolveScope, scopeToQuery, getCyclesForDimension, fullYearAvailable } from "@/modules/performance/reporting-scope";
+import { ScopeSelector } from "./ScopeSelector";
 
 const LEVEL_LABEL: Record<number, string> = { 1: "Poor", 2: "Base", 3: "Intermediate", 4: "Advanced", 5: "Rock Star" };
 
@@ -20,12 +21,25 @@ function nowGST(): string {
   return `${d.getUTCDate()} ${month} ${d.getUTCFullYear()}, ${hh}:${mm} GST`;
 }
 
-export async function DistributionView({ dimension, title }: { dimension: RatingDimension; title: string }) {
+export async function DistributionView({ dimension, title, params }: { dimension: RatingDimension; title: string; params: { cycle?: string; scope?: string; period?: string } }) {
   const dimLabel = dimension === "PERFORMANCE" ? "Performance" : "Values";
-  const currentPeriod = await prisma.reviewPeriod.findFirst({ where: { isCurrent: true } });
-  const scope = currentPeriod ? { periodId: currentPeriod.id } : {};
 
-  const data = await getReviewData(dimension, scope);
+  const scope = await resolveScope(dimension, params);
+  if (!scope) {
+    return (
+      <div>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+          <div style={{ width: 3, height: 22, background: "var(--purple)", borderRadius: 2 }} />
+          <h1 style={{ margin: 0 }}>{title}</h1>
+        </div>
+        <div className="empty">No review period is set up yet.</div>
+      </div>
+    );
+  }
+
+  const cycles = await getCyclesForDimension(scope.periodId, dimension);
+  const yearAvail = await fullYearAvailable(scope.periodId, dimension);
+  const data = await getReviewData(dimension, scopeToQuery(scope));
   const dist = computeDistribution(dimension, data);
   const gap = dimension === "PERFORMANCE" ? computeGap(dimension, data) : null;
   const byDept = computeGroupComparison(dimension, data, "department");
@@ -35,7 +49,12 @@ export async function DistributionView({ dimension, title }: { dimension: Rating
 
   const maxCount = Math.max(1, ...([1, 2, 3, 4, 5] as const).map((l) => dist.counts[l]));
   const refreshed = nowGST();
-  const drillBase = `/reporting/drilldown?dimension=${dimension}${currentPeriod ? `&period=${currentPeriod.id}` : ""}`;
+  const scopeQs = scope.kind === "cycle" ? `&cycle=${scope.cycleId}` : `&period=${scope.periodId}&scope=year`;
+  const drillBase = `/reporting/drilldown?dimension=${dimension}${scopeQs}`;
+  const pooledList = cycles.map((c) => c.label).join(", ");
+  const timeframeLabel = scope.kind === "cycle"
+    ? `Showing: ${scope.cycleLabel}`
+    : `Showing: Full year ${scope.periodLabel} — pooled across ${cycles.length} ${dimLabel.toLowerCase()} cycle${cycles.length === 1 ? "" : "s"}: ${pooledList}`;
 
   return (
     <div>
@@ -44,24 +63,27 @@ export async function DistributionView({ dimension, title }: { dimension: Rating
         <div style={{ width: 3, height: 22, background: "var(--purple)", borderRadius: 2 }} />
         <h1 style={{ margin: 0 }}>{title}</h1>
       </div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginLeft: 13, marginBottom: 14 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginLeft: 13, marginBottom: 12 }}>
         <span className="muted" style={{ fontSize: 12 }}>
           <Link href="/reporting">Reporting &amp; Insights</Link> › {dimLabel} distribution
         </span>
         <span className="muted" style={{ fontSize: 11, opacity: 0.7 }}>Last refreshed {refreshed}</span>
       </div>
 
+      {/* Timeframe selector (first-class filter) + explicit timeframe statement */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 14 }}>
+        <ScopeSelector
+          cycles={cycles.map((c) => ({ id: c.id, label: c.label, isOpen: c.isOpen, meaningful: c.meaningful }))}
+          fullYearAvailable={yearAvail}
+          currentKind={scope.kind}
+          currentCycleId={scope.kind === "cycle" ? scope.cycleId : undefined}
+          periodLabel={scope.periodLabel}
+        />
+        <span className="chip status-submitted" style={{ fontSize: 12 }}>{timeframeLabel}</span>
+      </div>
+
       {dist.total === 0 ? (
-        <>
-          <div className="card" style={{ paddingTop: 12, paddingBottom: 12 }}>
-            <div className="muted" style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 6 }}>Filters applied</div>
-            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-              <span className="chip">Period: {currentPeriod ? currentPeriod.label : "none"}</span>
-              <span className="chip">Type: {dimLabel}</span>
-            </div>
-          </div>
-          <div className="empty">No completed {dimLabel.toLowerCase()} ratings match these filters yet.</div>
-        </>
+        <div className="empty">No completed {dimLabel.toLowerCase()} ratings for {scope.kind === "cycle" ? scope.cycleLabel : `full year ${scope.periodLabel}`} yet.</div>
       ) : (
         <>
           {/* Concise executive summary */}
@@ -78,13 +100,6 @@ export async function DistributionView({ dimension, title }: { dimension: Rating
             <Kpi label="Most common" value={modeLevel != null ? LEVEL_LABEL[modeLevel] : "—"} wide />
             <Kpi label="% Rated 4–5" value={`${Math.round(dist.pctAt4or5)}%`} />
             <Kpi label="Completed reviews" value={String(dist.total)} last />
-          </div>
-
-          {/* Filters applied (compact, below KPIs) */}
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 14 }}>
-            <span className="muted" style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em", alignSelf: "center" }}>Filters</span>
-            <span className="chip">Period: {currentPeriod ? currentPeriod.label : "none"}</span>
-            <span className="chip">Type: {dimLabel}</span>
           </div>
 
           {/* Hero chart with clickable bars */}

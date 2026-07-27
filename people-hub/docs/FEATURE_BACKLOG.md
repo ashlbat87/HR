@@ -158,3 +158,15 @@ timestamp; calibration notes; session status; audit history; final sign-off.
 v0.8 seam (already built): the "official rating" resolver returns the manager rating today
 and must return the approved moderated rating once this exists, with NO change to reporting
 code. Reporting queries are shaped so v0.9 can show original vs moderated side by side.
+
+## Cycle creation governance (period-management area, future)
+Problem: cycle labels are free text and nothing constrains how many/what kind of cycles a
+period accumulates. A mislabelled cycle (e.g. "March" instead of "Q2") or a stray non-quarter
+quarterly cycle degrades reporting readability and, in a Full Year view, would be pooled in.
+Reporting mitigates the danger by listing pooled cycles explicitly (PD-025), but the root
+governance gap is in cycle CREATION, not reporting.
+Possible future work (belongs with period/cycle management, not reporting):
+- Structured cycle creation (e.g. choose Q1-Q4 rather than free-text labels), or validation.
+- Guardrail on how many quarterly cycles a period may contain.
+- Warn/prevent duplicate or non-standard cycles within a period.
+Not scheduled; captured so the governance gap is not forgotten.

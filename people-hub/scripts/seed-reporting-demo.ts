@@ -58,6 +58,7 @@ async function seed() {
   // Move current flag to the demo period (reports scope to current).
   await prisma.reviewPeriod.updateMany({ where: { isCurrent: true }, data: { isCurrent: false } });
   const period = await prisma.reviewPeriod.create({ data: { label: PERIOD_LABEL, isCurrent: true } });
+  const q1Cycle = await prisma.reviewCycle.create({ data: { periodId: period.id, type: "QUARTERLY", label: "Q1 2026 (demo)", isOpen: false } });
   const qCycle = await prisma.reviewCycle.create({ data: { periodId: period.id, type: "QUARTERLY", label: "Q2 2026 (demo)", isOpen: true } });
   const vCycle = await prisma.reviewCycle.create({ data: { periodId: period.id, type: "ANNUAL_VALUES", label: "Values 2026 (demo)", isOpen: true } });
 
@@ -80,6 +81,12 @@ async function seed() {
       // Vary completion times per department so median differs (Ops slower).
       const slow = d.dept === "Operations" ? 25 : 6;
       await makeReview(qCycle.id, "QUARTERLY", emp.id, mgr.id, PI, m, s, subBase + slow, compBase);
+      // Q1 (earlier cycle): a lower/different spread so switching cycles visibly changes the
+      // chart and "Full year" visibly pools Q1+Q2. Shift manager & self down ~1, floored 1.
+      const q1m = Math.max(1, m - 1);
+      const q1s = Math.max(1, s - 1);
+      const q1emp = await makeEmp(`${d.dept} Q1 Person ${i + 1}`, d.dept, d.func, mgr.id);
+      await makeReview(q1Cycle.id, "QUARTERLY", q1emp.id, mgr.id, PI, q1m, q1s, subBase + slow + 90, compBase + 90);
       // A values review for some employees (separate dimension).
       if (i % 2 === 0) {
         const vm = Math.min(5, Math.max(1, m)); // values manager score close to perf but independent
