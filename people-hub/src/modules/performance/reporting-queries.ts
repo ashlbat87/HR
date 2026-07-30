@@ -524,3 +524,27 @@ export async function reviewsInCriterionBucket(scope: ReportingScope, item: stri
   out.sort((a, b) => a.employeeName.localeCompare(b.employeeName));
   return out;
 }
+
+// Drill-down for a gap-size bucket ("zero" | "one" | "twoPlus"), by |rounded gap| where
+// gap = official(manager) - self. Only reviews with both scores. Count matches the gap
+// report's sizeDistribution bucket (same rounding).
+export function reviewsInGapBucket(data: ReviewDatum[], bucket: "zero" | "one" | "twoPlus"): DrillReview[] {
+  const out: DrillReview[] = [];
+  for (const d of data) {
+    if (d.selfScore == null) continue;
+    const gap = getOfficialScore(d) - d.selfScore;
+    const mag = Math.abs(roundHalfUp(gap));
+    const b = mag === 0 ? "zero" : mag === 1 ? "one" : "twoPlus";
+    if (b === bucket) {
+      out.push({
+        reviewId: d.reviewId,
+        employeeName: d.employeeName,
+        managerName: d.managerName,
+        department: d.department,
+        officialScore: getOfficialScore(d),
+      });
+    }
+  }
+  out.sort((a, b) => a.employeeName.localeCompare(b.employeeName));
+  return out;
+}
