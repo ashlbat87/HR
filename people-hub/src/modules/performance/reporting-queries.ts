@@ -425,3 +425,102 @@ export function reviewsInGroup(data: ReviewDatum[], groupBy: GroupBy, key: strin
   out.sort((a, b) => a.employeeName.localeCompare(b.employeeName));
   return out;
 }
+
+// ---- Performance criterion analysis (Diagnostic layer, PD-018) ----
+// Per performance criterion (Impact/Quality/Delivery), computed from MANAGER-side item
+// scores DIRECTLY (not via getOfficialScore). It sits one level below the headline rating
+// and is therefore unaffected by v0.9 moderation (moderation adjusts the overall rating,
+// not individual criteria). Performance only; values has its own value items (future).
+
+export interface CriterionStat {
+  item: string; // "IMPACT" | "QUALITY" | "DELIVERY"
+  label: string; // display label
+  n: number; // reviews with a manager score for this criterion
+  average: number | null; // precise mean of manager item scores
+  counts: Record<1 | 2 | 3 | 4 | 5, number>; // distribution by rounded score
+  pctAt4or5: number;
+}
+
+const CRITERION_LABEL: Record<string, string> = { IMPACT: "Impact", QUALITY: "Quality", DELIVERY: "Delivery" };
+
+// Load per-criterion manager scores for the scoped QUARTERLY reviews. Returns, per criterion,
+// the list of manager scores (one per review that has that item).
+async function getCriterionScores(scope: ReportingScope = {}): Promise<Record<string, number[]>> {
+  const reviews = await prisma.review.findMany({
+    where: {
+      type: "QUARTERLY" as ReviewType,
+      ...(scope.cycleId ? { cycleId: scope.cycleId } : {}),
+      ...(scope.periodId ? { cycle: { periodId: scope.periodId } } : {}),
+    },
+    select: { ratings: { where: { side: "MANAGER" }, select: { item: true, score: true } } },
+  });
+  const byItem: Record<string, number[]> = { IMPACT: [], QUALITY: [], DELIVERY: [] };
+  for (const r of reviews) {
+    for (const rt of r.ratings) {
+      if (rt.item in byItem) byItem[rt.item].push(rt.score);
+    }
+  }
+  return byItem;
+}
+
+export async function getCriterionBreakdown(scope: ReportingScope = {}): Promise<CriterionStat[]> {
+  const byItem = await getCriterionScores(scope);
+  const out: CriterionStat[] = [];
+  for (const item of PERFORMANCE_ITEMS) {
+    const scores = byItem[item] ?? [];
+    const counts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } as Record<1 | 2 | 3 | 4 | 5, number>;
+    for (const sc of scores) {
+      let lvl = roundHalfUp(sc);
+      if (lvl < 1) lvl = 1;
+      if (lvl > 5) lvl = 5;
+      counts[lvl as 1 | 2 | 3 | 4 | 5]++;
+    }
+    const at45 = counts[4] + counts[5];
+    out.push({
+      item,
+      label: CRITERION_LABEL[item] ?? item,
+      n: scores.length,
+      average: mean(scores),
+      counts,
+      pctAt4or5: scores.length ? (at45 / scores.length) * 100 : 0,
+    });
+  }
+  return out;
+}
+
+// Drill-down for a criterion + level: reviews whose MANAGER score for that criterion rounds
+// to the level. Count matches the criterion's distribution bar (same rounding).
+export async function reviewsInCriterionBucket(scope: ReportingScope, item: string, level: number): Promise<DrillReview[]> {
+  const reviews = await prisma.review.findMany({
+    where: {
+      type: "QUARTERLY" as ReviewType,
+      ...(scope.cycleId ? { cycleId: scope.cycleId } : {}),
+      ...(scope.periodId ? { cycle: { periodId: scope.periodId } } : {}),
+    },
+    select: {
+      id: true,
+      employee: { select: { displayName: true, department: true } },
+      manager: { select: { displayName: true } },
+      ratings: { where: { side: "MANAGER", item }, select: { score: true } },
+    },
+  });
+  const out: DrillReview[] = [];
+  for (const r of reviews) {
+    const sc = r.ratings[0]?.score;
+    if (sc == null) continue;
+    let lvl = roundHalfUp(sc);
+    if (lvl < 1) lvl = 1;
+    if (lvl > 5) lvl = 5;
+    if (lvl === level) {
+      out.push({
+        reviewId: r.id,
+        employeeName: r.employee?.displayName ?? "Unknown",
+        managerName: r.manager?.displayName ?? "Unknown",
+        department: r.employee?.department ?? null,
+        officialScore: sc,
+      });
+    }
+  }
+  out.sort((a, b) => a.employeeName.localeCompare(b.employeeName));
+  return out;
+}

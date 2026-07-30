@@ -30,6 +30,7 @@ const REPORTS: { href: string; q: string }[] = [
   { href: "/reporting/gaps", q: "Where do employees and managers see performance differently?" },
   { href: "/reporting/departments", q: "Which departments differ from the organisation?" },
   { href: "/reporting/managers", q: "How do rating distributions vary by manager?" },
+  { href: "/reporting/criterion", q: "How do ratings vary by performance criterion?" },
   { href: "/reporting/completion", q: "How complete is the current process?" },
   { href: "/reporting/accountability", q: "How are managers participating and following through?" },
 ];

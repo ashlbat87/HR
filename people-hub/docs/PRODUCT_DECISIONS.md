@@ -299,3 +299,19 @@ why decisions were made.
 - Impact: Full Year views carry an explicit pooled-data statement; all reports show
   timeframe + population ("based on N") + dimension.
 - Status: Active. Applies-from: v0.8 reporting onward.
+
+## PD-026 — Performance criterion analysis reads item scores directly (Diagnostic layer)
+- Date: 24 July 2026
+- Decision: the performance-criterion report (Impact/Quality/Delivery) computes from the
+  MANAGER-side item scores in ReviewRating DIRECTLY, not through the official-rating resolver
+  (getOfficialScore). It therefore sits one level below the headline rating.
+- Consequence: v0.9 moderation adjusts the OVERALL rating, not individual criteria, so
+  criterion analysis is unaffected by moderation and always reflects the original manager
+  item scores. This is intended and must be preserved.
+- Layer: this is the first Diagnostic-layer report (PD-018) — "why are people performing that
+  way" — distinct from the Outcome-layer distribution report ("who is performing").
+- Rationale: criteria are not themselves moderated; showing original item scores is the
+  correct, transparent behaviour.
+- Impact: getCriterionBreakdown + reviewsInCriterionBucket in reporting-queries.ts; verified
+  by stage7c-criterion-acceptance.ts (12/12, hand-computed).
+- Status: Active. Applies-from: v0.8 criterion report; persists through v0.9 moderation.

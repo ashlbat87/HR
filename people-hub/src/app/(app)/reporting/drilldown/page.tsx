@@ -8,7 +8,7 @@ import { prisma } from "@/shared/lib/prisma";
 import { resolveScope, scopeToQuery } from "@/modules/performance/reporting-scope";
 import Link from "next/link";
 import {
-  getReviewData, reviewsInBucket, reviewsInGroup,
+  getReviewData, reviewsInBucket, reviewsInGroup, reviewsInCriterionBucket,
   type RatingDimension, type GroupBy,
 } from "@/modules/performance/reporting-queries";
 
@@ -39,7 +39,21 @@ export default async function ReportingDrilldownPage({ searchParams }: { searchP
   let breadcrumbTail: React.ReactNode;
   let filterChips: React.ReactNode;
 
-  if (groupBy && groupValue) {
+  const criterion = (sp.criterion === "IMPACT" || sp.criterion === "QUALITY" || sp.criterion === "DELIVERY") ? sp.criterion : null;
+
+  if (criterion) {
+    const level = Math.max(1, Math.min(5, parseInt(sp.level ?? "0", 10) || 0));
+    rows = scope ? await reviewsInCriterionBucket(scopeToQuery(scope), criterion, level) : [];
+    const CRIT_LABEL: Record<string, string> = { IMPACT: "Impact", QUALITY: "Quality", DELIVERY: "Delivery" };
+    heading = `${LEVEL_LABEL[level]} — ${CRIT_LABEL[criterion]} ratings`;
+    breadcrumbTail = (<><Link href="/reporting/criterion">Performance criterion analysis</Link> › {CRIT_LABEL[criterion]} › {LEVEL_LABEL[level]}</>);
+    filterChips = (<>
+      <span className="chip">Timeframe: {scopeLabel}</span>
+      <span className="chip">Type: {dimLabel}</span>
+      <span className="chip">Criterion: {CRIT_LABEL[criterion]}</span>
+      <span className="chip">Rating: {LEVEL_LABEL[level]}</span>
+    </>);
+  } else if (groupBy && groupValue) {
     rows = reviewsInGroup(data, groupBy, groupValue);
     // For managers, the key is an id; show a friendly label from the first matching row.
     const back = GROUP_BACK[groupBy];
