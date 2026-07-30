@@ -23,19 +23,22 @@ NOTE: if reports look empty, a different (empty) period is current — re-run th
 - Decisions: PD-023/024/025 (time scoping), PD-026 (criterion reads item scores).
 - Function comparison removed (== department at Tarabut). Backlog: cycle-creation governance.
 
-## Resume point — STEP: 7d Manager Accountability
-- Build the Manager Accountability view (PD-008: participation/process, NOT quality):
-  per manager, completion % and MEDIAN completion time (SUBMITTED -> MANAGER_COMPLETED).
-  Query already exists: getManagerMedianCompletionTimes in reporting-queries.ts (verify it
-  honours the timeframe scope; may need a scope arg like the others).
-- Lights up the two landing cards still pointing at unbuilt routes:
-  /reporting/completion ("How complete is the current process?") and
-  /reporting/accountability ("How are managers participating and following through?").
-  Decide whether these are one view or two (completion vs accountability).
-- Honour the timeframe selector; neutral language; drillable where sensible.
-- Add a harness (PD-014).
+## Resume point — STEP: 7e Exports
+The reporting design calls for format-agnostic export (CSV in v0.8; Excel/PDF future). Each
+report should export its underlying data, carrying "Last refreshed" (GST) and the applied
+timeframe/filters into the export (PD-025: state timeframe + population). Decide: a shared
+export helper (report -> rows -> CSV download) wired into each report's header, honouring the
+current scope. HR-only. No new data — exports the same scoped data already shown.
+After 7e: 7f = docs update (metric dictionary + design note "as-built") + v0.8 sign-off, then
+v0.9 Moderation.
 
-## Then: 7e exports + broader drill-down; 7f docs + v0.8 sign-off.
+## Reporting suite — ALL BUILT (committed)
+Landing (Exec Summary / Key Highlights / Explore Reports / reserved AI slot); distribution
+(performance, values); comparison family (departments, managers, criterion [Diagnostic
+PD-018/026], gaps); Manager Accountability (PD-008); Completion funnel. All time-scoped
+(ScopeSelector, PD-023/024/025), drillable, neutral. Harnesses: 7a 27/27, criterion 12/12,
+7d 8/8. Decisions through PD-026.
+
 
 ## Watch-outs
 - Big files via clean `cat >` heredoc; python str.replace often fails on whitespace — prefer
