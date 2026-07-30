@@ -1,51 +1,48 @@
-# Resume Next — Reporting & Insights time-scoping retrofit (continued)
+# Resume Next — v0.8 Reporting & Insights
 
-Last work: distribution reports are fully time-scoped (steps 1-3 done). Remaining: apply the
-same scoping to the comparison views + landing (step 4), then build criterion + gaps (step 5).
+Last work: 7c comparison family COMPLETE (department, manager, criterion, gaps), all
+time-scoped + drillable + neutral. Time-scoping retrofit done across ALL reports.
 If restarted: `npm run typecheck`, `npm run db:reset`, then
-`npx tsx scripts/seed-reporting-demo.ts` (demo now has Q1 + Q2 quarterly cycles + a values
-cycle, so the timeframe selector has multiple options to switch between).
+`npx tsx scripts/seed-reporting-demo.ts` (creates "2026 Reporting Demo" period, sets it
+CURRENT, Q1 + Q2 quarterly cycles + a values cycle, ~46 perf / ~24 values reviews).
+NOTE: if reports look empty, a different (empty) period is current — re-run the demo seed.
 
-## Done (committed)
-- Time-scoping foundation: reporting-scope.ts (resolveScope, scopeToQuery,
-  getCyclesForDimension, resolveDefaultCycleId=latest meaningful, fullYearAvailable,
-  MEANINGFUL_CYCLE_MIN_COMPLETED=3) + ScopeSelector.tsx (first-class URL filter).
-- DistributionView + performance/values pages + drilldown: all honour the selected
-  cycle/full-year; drill-down counts match the bar under any timeframe; Full Year lists the
-  pooled cycles explicitly (PD-025).
-- Demo seed: added a Q1 cycle (lower spread) so switching Q1/Q2/Full year visibly changes
-  the data.
-- Governing decisions: PD-023 (cycle default, opt-in full year, per-report URL filter,
-  QUARTERLY+ANNUAL_VALUES only), PD-024 (latest meaningful cycle, configurable threshold),
-  PD-025 (pooling never silent). Backlog: cycle-creation governance.
+## Done (committed, on GitHub)
+- Time-scoping: reporting-scope.ts + ScopeSelector.tsx (first-class URL filter); every
+  report (distribution, comparisons, landing, criterion, gaps) honours a per-report
+  timeframe selector; default = latest meaningful cycle (PD-024); Full Year lists pooled
+  cycles (PD-025); drill-down inherits scope.
+- Distribution reports (performance, values): hero chart, KPI strip (avg/median/mode/
+  %4-5/completed), drill-down.
+- Comparison family: /reporting/departments, /managers (GroupComparisonView), /criterion
+  (CriterionAnalysisView, Diagnostic layer PD-018/PD-026, reads item scores directly),
+  /gaps (GapAnalysisView, self-vs-manager, neutral).
+- Drill-down (/reporting/drilldown) handles: level buckets, group (dept/manager),
+  criterion+level, gap buckets. Counts always match the source.
+- Verified: stage7a 27/27, stage7c-criterion 12/12; regressions green.
+- Decisions: PD-023/024/025 (time scoping), PD-026 (criterion reads item scores).
+- Function comparison removed (== department at Tarabut). Backlog: cycle-creation governance.
 
-## Resume point — STEP 4: scope the comparison views + landing
-Mirror the DistributionView retrofit in:
-1. GroupComparisonView.tsx (backs departments + managers): add `params` prop; resolveScope
-   -> scopeToQuery for getReviewData; load getCyclesForDimension + fullYearAvailable; render
-   <ScopeSelector>; timeframe chip (with pooled-cycles list on full year); drillBase carries
-   `&cycle=<id>` or `&period=<id>&scope=year`.
-2. departments/page.tsx + managers/page.tsx: accept `searchParams`, pass `params` through
-   (like the distribution pages).
-3. Landing reporting/page.tsx: decide scope (LEAN: default to latest meaningful cycle with
-   the same selector, consistent with reports) and wire it.
-Pattern reference: DistributionView.tsx (already done) is the template.
+## Resume point — STEP: 7d Manager Accountability
+- Build the Manager Accountability view (PD-008: participation/process, NOT quality):
+  per manager, completion % and MEDIAN completion time (SUBMITTED -> MANAGER_COMPLETED).
+  Query already exists: getManagerMedianCompletionTimes in reporting-queries.ts (verify it
+  honours the timeframe scope; may need a scope arg like the others).
+- Lights up the two landing cards still pointing at unbuilt routes:
+  /reporting/completion ("How complete is the current process?") and
+  /reporting/accountability ("How are managers participating and following through?").
+  Decide whether these are one view or two (completion vs accountability).
+- Honour the timeframe selector; neutral language; drillable where sensible.
+- Add a harness (PD-014).
 
-## STEP 5: finish the comparison family (after step 4)
-- Performance-criterion analysis (first Diagnostic-layer report, PD-018): new query over
-  item-level MANAGER-side ReviewRating (Impact/Quality/Delivery): per criterion avg,
-  distribution, %at4-5, completed-count; each drillable; reads item scores directly (NOT the
-  official-rating resolver) so unaffected by v0.9 moderation -> record a PD when built; add a
-  harness (PD-014). Honour time scope.
-- Self-vs-manager gaps report: computeGap; avg gap + gap-size distribution; drill-down.
-- All: neutral language, "based on N", performance/values separate, honour time scope.
+## Then: 7e exports + broader drill-down; 7f docs + v0.8 sign-off.
 
 ## Watch-outs
-- ScopeSelector uses useSearchParams() -> wrap in <Suspense> if the build complains (hasn't
-  so far).
-- Big files via clean `cat >` heredoc ending exactly at ENDOFFILE.
+- Big files via clean `cat >` heredoc; python str.replace often fails on whitespace — prefer
+  regex-tolerant or view exact lines first with `sed -n 'A,Bp' | cat -A`.
 - `rm -rf .next` if typecheck errors reference deleted routes.
-- Harnesses one-at-a-time each after db:reset; reseed before viewing.
+- Harnesses one-at-a-time after db:reset; reseed (+ demo seed) before viewing.
+- If reports empty: wrong period is current -> re-run seed-reporting-demo.
 
 ## Orientation
 cd /workspaces/HR/people-hub && git --no-pager log --oneline -5 && git status --short && cat docs/RESUME_NEXT.md
