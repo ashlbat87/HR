@@ -5,12 +5,13 @@
 import { getCurrentUser } from "@/core/auth";
 import { isHR } from "@/core/access";
 import { redirect } from "next/navigation";
-import { prisma } from "@/shared/lib/prisma";
 import Link from "next/link";
 import {
   getReviewData, computeDistribution, computeGap, computeGroupComparison,
   buildExecutiveSummary,
 } from "@/modules/performance/reporting-queries";
+import { resolveScope, scopeToQuery, getCyclesForDimension, fullYearAvailable } from "@/modules/performance/reporting-scope";
+import { ScopeSelector } from "./ScopeSelector";
 
 function nowGST(): string {
   // GST is UTC+4, no DST. Format: "24 July 2026, 09:15 GST".
@@ -33,15 +34,25 @@ const REPORTS: { href: string; q: string }[] = [
   { href: "/reporting/accountability", q: "How are managers participating and following through?" },
 ];
 
-export default async function ReportingLandingPage() {
+export default async function ReportingLandingPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const user = await getCurrentUser();
   if (!user) redirect("/signin");
   if (!isHR(user)) redirect("/reviews");
+  const sp = await searchParams;
 
-  const currentPeriod = await prisma.reviewPeriod.findFirst({ where: { isCurrent: true } });
-  const scope = currentPeriod ? { periodId: currentPeriod.id } : {};
-
-  const perf = await getReviewData("PERFORMANCE", scope);
+  const scope = await resolveScope("PERFORMANCE", { cycle: sp.cycle, scope: sp.scope, period: sp.period });
+  if (!scope) {
+    return (
+      <div>
+        <h1 style={{ marginBottom: 4 }}>Reporting &amp; Insights</h1>
+        <div className="empty">No review period is set up yet.</div>
+      </div>
+    );
+  }
+  const cycles = await getCyclesForDimension(scope.periodId, "PERFORMANCE");
+  const yearAvail = await fullYearAvailable(scope.periodId, "PERFORMANCE");
+  const scopeQs = scope.kind === "cycle" ? `?cycle=${scope.cycleId}` : `?period=${scope.periodId}&scope=year`;
+  const perf = await getReviewData("PERFORMANCE", scopeToQuery(scope));
   const perfDist = computeDistribution("PERFORMANCE", perf);
   const perfGap = computeGap("PERFORMANCE", perf);
   const perfByDept = computeGroupComparison("PERFORMANCE", perf, "department");
@@ -58,10 +69,20 @@ export default async function ReportingLandingPage() {
         <div>
           <h1 style={{ marginBottom: 4 }}>Reporting &amp; Insights</h1>
           <p className="muted" style={{ marginTop: 0 }}>
-            {currentPeriod ? `Current period: ${currentPeriod.label}` : "No current review period set."}
+            {scope.kind === "cycle" ? `Showing: ${scope.cycleLabel}` : `Showing: Full year ${scope.periodLabel} (pooled)`}
           </p>
         </div>
         <div className="muted" style={{ fontSize: 12, whiteSpace: "nowrap", marginTop: 6 }}>Last refreshed: {refreshed}</div>
+      </div>
+
+      <div style={{ marginTop: 12, marginBottom: 4 }}>
+        <ScopeSelector
+          cycles={cycles.map((c) => ({ id: c.id, label: c.label, isOpen: c.isOpen, meaningful: c.meaningful }))}
+          fullYearAvailable={yearAvail}
+          currentKind={scope.kind}
+          currentCycleId={scope.kind === "cycle" ? scope.cycleId : undefined}
+          periodLabel={scope.periodLabel}
+        />
       </div>
 
       {/* Executive summary */}
@@ -94,7 +115,7 @@ export default async function ReportingLandingPage() {
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 10 }}>
         {REPORTS.map((r) => (
-          <Link key={r.href} href={r.href} className="card" style={{ display: "block", textDecoration: "none", color: "inherit", marginBottom: 0 }}>
+          <Link key={r.href} href={`${r.href}${scopeQs}`} className="card" style={{ display: "block", textDecoration: "none", color: "inherit", marginBottom: 0 }}>
             <span style={{ fontWeight: 500 }}>{r.q}</span>
           </Link>
         ))}

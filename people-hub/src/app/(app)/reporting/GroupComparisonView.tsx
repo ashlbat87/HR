@@ -3,10 +3,11 @@
 // per group; performance/values separate. Uses computeGroupComparison from the 7a layer.
 
 import Link from "next/link";
-import { prisma } from "@/shared/lib/prisma";
 import {
   getReviewData, computeGroupComparison, type RatingDimension, type GroupBy,
 } from "@/modules/performance/reporting-queries";
+import { resolveScope, scopeToQuery, getCyclesForDimension, fullYearAvailable } from "@/modules/performance/reporting-scope";
+import { ScopeSelector } from "./ScopeSelector";
 
 function nowGST(): string {
   const d = new Date(Date.now() + 4 * 3600 * 1000);
@@ -18,19 +19,33 @@ function nowGST(): string {
 
 const GROUP_NOUN: Record<GroupBy, string> = { department: "department", func: "function", manager: "manager" };
 
-export async function GroupComparisonView({ dimension, groupBy, title }: { dimension: RatingDimension; groupBy: GroupBy; title: string }) {
+export async function GroupComparisonView({ dimension, groupBy, title, params }: { dimension: RatingDimension; groupBy: GroupBy; title: string; params: { cycle?: string; scope?: string; period?: string } }) {
   const dimLabel = dimension === "PERFORMANCE" ? "Performance" : "Values";
-  const currentPeriod = await prisma.reviewPeriod.findFirst({ where: { isCurrent: true } });
-  const scope = currentPeriod ? { periodId: currentPeriod.id } : {};
-
-  const data = await getReviewData(dimension, scope);
+  const scope = await resolveScope(dimension, params);
+  if (!scope) {
+    return (
+      <div>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+          <div style={{ width: 3, height: 22, background: "var(--purple)", borderRadius: 2 }} />
+          <h1 style={{ margin: 0 }}>{title}</h1>
+        </div>
+        <div className="empty">No review period is set up yet.</div>
+      </div>
+    );
+  }
+  const cycles = await getCyclesForDimension(scope.periodId, dimension);
+  const yearAvail = await fullYearAvailable(scope.periodId, dimension);
+  const data = await getReviewData(dimension, scopeToQuery(scope));
   const groups = computeGroupComparison(dimension, data, groupBy);
   const orgAvg = data.length ? data.reduce((a, d) => a + d.managerScore, 0) / data.length : null;
   const noun = GROUP_NOUN[groupBy];
   const refreshed = nowGST();
   const maxAvg = 5;
 
-  const drillBase = `/reporting/drilldown?dimension=${dimension}${currentPeriod ? `&period=${currentPeriod.id}` : ""}&group=${groupBy}`;
+  const scopeQs = scope.kind === "cycle" ? `&cycle=${scope.cycleId}` : `&period=${scope.periodId}&scope=year`;
+  const drillBase = `/reporting/drilldown?dimension=${dimension}${scopeQs}&group=${groupBy}`;
+  const pooledList = cycles.map((c) => c.label).join(", ");
+  const timeframeLabel = scope.kind === "cycle" ? `Showing: ${scope.cycleLabel}` : `Showing: Full year ${scope.periodLabel} — pooled across ${cycles.length} ${dimLabel.toLowerCase()} cycle${cycles.length === 1 ? "" : "s"}: ${pooledList}`;
 
   return (
     <div>
@@ -56,7 +71,7 @@ export async function GroupComparisonView({ dimension, groupBy, title }: { dimen
 
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 14 }}>
             <span className="muted" style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em", alignSelf: "center" }}>Filters</span>
-            <span className="chip">Period: {currentPeriod ? currentPeriod.label : "none"}</span>
+            <span className="chip">Timeframe: {scope.kind === "cycle" ? scope.cycleLabel : `Full year ${scope.periodLabel}`}</span>
             <span className="chip">Type: {dimLabel}</span>
             <span className="chip">Grouped by: {noun}</span>
           </div>
