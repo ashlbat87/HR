@@ -63,7 +63,10 @@ export async function GapAnalysisView({ params }: { params: { cycle?: string; sc
           currentCycleId={scope.kind === "cycle" ? scope.cycleId : undefined}
           periodLabel={scope.periodLabel}
         />
-        <span className="chip status-submitted" style={{ fontSize: 12 }}>{timeframeLabel}</span>
+        <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span className="chip status-submitted" style={{ fontSize: 12 }}>{timeframeLabel}</span>
+          <a href={`/reporting/export?report=gaps&dimension=PERFORMANCE${scopeQs}`} className="btn secondary" style={{ padding: "5px 12px", fontSize: 13 }}>Export CSV</a>
+        </span>
       </div>
 
       {gap.total === 0 ? (

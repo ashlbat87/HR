@@ -57,7 +57,10 @@ export async function GroupComparisonView({ dimension, groupBy, title, params }:
         <span className="muted" style={{ fontSize: 12 }}>
           <Link href="/reporting">Reporting &amp; Insights</Link> › {title}
         </span>
-        <span className="muted" style={{ fontSize: 11, opacity: 0.7 }}>Last refreshed {refreshed}</span>
+        <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span className="muted" style={{ fontSize: 11, opacity: 0.7 }}>Last refreshed {refreshed}</span>
+          <a href={`/reporting/export?report=${groupBy}&dimension=${dimension}${scopeQs}`} className="btn secondary" style={{ padding: "5px 12px", fontSize: 13 }}>Export CSV</a>
+        </span>
       </div>
 
       {groups.length === 0 ? (

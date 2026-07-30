@@ -26,6 +26,7 @@ export async function CompletionView({ params }: { params: { cycle?: string; sco
   const { stages, total } = await getCompletionFunnel(scopeToQuery(scope));
 
   const timeframeLabel = scope.kind === "cycle" ? `Showing: ${scope.cycleLabel}` : `Showing: Full year ${scope.periodLabel} (pooled)`;
+  const scopeQs = scope.kind === "cycle" ? `&cycle=${scope.cycleId}` : `&period=${scope.periodId}&scope=year`;
   const done = stages.find((s) => s.key === "done")?.count ?? 0;
   const donePct = total ? Math.round((done / total) * 100) : 0;
   const maxCount = Math.max(1, ...stages.map((s) => s.count));
@@ -50,7 +51,10 @@ export async function CompletionView({ params }: { params: { cycle?: string; sco
           currentCycleId={scope.kind === "cycle" ? scope.cycleId : undefined}
           periodLabel={scope.periodLabel}
         />
-        <span className="chip status-submitted" style={{ fontSize: 12 }}>{timeframeLabel}</span>
+        <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span className="chip status-submitted" style={{ fontSize: 12 }}>{timeframeLabel}</span>
+          <a href={`/reporting/export?report=completion&dimension=PERFORMANCE${scopeQs}`} className="btn secondary" style={{ padding: "5px 12px", fontSize: 13 }}>Export CSV</a>
+        </span>
       </div>
 
       {total === 0 ? (
