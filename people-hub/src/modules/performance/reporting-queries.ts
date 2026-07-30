@@ -548,3 +548,104 @@ export function reviewsInGapBucket(data: ReviewDatum[], bucket: "zero" | "one" |
   out.sort((a, b) => a.employeeName.localeCompare(b.employeeName));
   return out;
 }
+
+// ---- Manager Accountability (participation; PD-008: process not quality) ----
+// Per manager in the scoped timeframe (ALL review types, since a manager's follow-through
+// spans types): assigned = reviews where they are the manager; completed = reviews that
+// reached a MANAGER_COMPLETED event (the manager did their step); completion %; and median
+// completion time (SUBMITTED -> MANAGER_COMPLETED, last submission before completion).
+// Neutral: this measures participation/timeliness, NOT rating quality.
+
+export interface ManagerParticipation {
+  managerId: string;
+  managerName: string;
+  assigned: number;
+  completed: number;
+  completionPct: number; // 0..100
+  medianDays: number | null;
+}
+
+export async function getManagerParticipation(scope: ReportingScope = {}): Promise<ManagerParticipation[]> {
+  const reviews = await prisma.review.findMany({
+    where: {
+      ...(scope.cycleId ? { cycleId: scope.cycleId } : {}),
+      ...(scope.periodId ? { cycle: { periodId: scope.periodId } } : {}),
+      ...(scope.managerId ? { managerId: scope.managerId } : {}),
+    },
+    select: {
+      managerId: true,
+      manager: { select: { displayName: true } },
+      events: { select: { type: true, at: true }, orderBy: { at: "asc" } },
+    },
+  });
+
+  const byManager = new Map<string, { name: string; assigned: number; durationsMs: number[] }>();
+  for (const r of reviews) {
+    const key = r.managerId;
+    if (!byManager.has(key)) byManager.set(key, { name: r.manager?.displayName ?? "Unknown", assigned: 0, durationsMs: [] });
+    const m = byManager.get(key)!;
+    m.assigned++;
+
+    const completedEvent = [...r.events].filter((e) => e.type === "MANAGER_COMPLETED").sort((a, b) => a.at.getTime() - b.at.getTime()).pop();
+    if (completedEvent) {
+      const submittedBefore = r.events
+        .filter((e) => e.type === "SUBMITTED" && e.at.getTime() <= completedEvent.at.getTime())
+        .sort((a, b) => a.at.getTime() - b.at.getTime())
+        .pop();
+      if (submittedBefore) m.durationsMs.push(completedEvent.at.getTime() - submittedBefore.at.getTime());
+    }
+  }
+
+  // Recount completed = reviews with a MANAGER_COMPLETED event (independent of SUBMITTED).
+  const completedByManager = new Map<string, number>();
+  for (const r of reviews) {
+    const hasCompleted = r.events.some((e) => e.type === "MANAGER_COMPLETED");
+    if (hasCompleted) completedByManager.set(r.managerId, (completedByManager.get(r.managerId) ?? 0) + 1);
+  }
+
+  const out: ManagerParticipation[] = [];
+  for (const [managerId, m] of byManager) {
+    const completed = completedByManager.get(managerId) ?? 0;
+    const days = m.durationsMs.map((ms) => ms / (1000 * 60 * 60 * 24));
+    out.push({
+      managerId,
+      managerName: m.name,
+      assigned: m.assigned,
+      completed,
+      completionPct: m.assigned ? (completed / m.assigned) * 100 : 0,
+      medianDays: median(days),
+    });
+  }
+  out.sort((a, b) => a.managerName.localeCompare(b.managerName));
+  return out;
+}
+
+// ---- Completion funnel (process view; Stage 7d) ----
+// How many scoped reviews sit at each stage, using the SAME classify() rules as the HR
+// dashboard so the two never disagree. All review types. Neutral/process-only.
+import { classify, type StageKey } from "./dashboard-queries";
+
+export interface FunnelStage { key: StageKey; label: string; count: number; }
+
+const STAGE_ORDER: { key: StageKey; label: string }[] = [
+  { key: "self_review", label: "Not started / in self review" },
+  { key: "awaiting_manager", label: "Awaiting manager" },
+  { key: "awaiting_ack", label: "Awaiting acknowledgement" },
+  { key: "done", label: "Complete" },
+];
+
+export async function getCompletionFunnel(scope: ReportingScope = {}): Promise<{ stages: FunnelStage[]; total: number }> {
+  const reviews = await prisma.review.findMany({
+    where: {
+      ...(scope.cycleId ? { cycleId: scope.cycleId } : {}),
+      ...(scope.periodId ? { cycle: { periodId: scope.periodId } } : {}),
+    },
+    select: { type: true, status: true, acknowledgedAt: true },
+  });
+  const counts: Record<StageKey, number> = { self_review: 0, awaiting_manager: 0, awaiting_ack: 0, done: 0 };
+  for (const r of reviews) counts[classify(r.type, r.status, r.acknowledgedAt)]++;
+  return {
+    stages: STAGE_ORDER.map((s) => ({ key: s.key, label: s.label, count: counts[s.key] })),
+    total: reviews.length,
+  };
+}

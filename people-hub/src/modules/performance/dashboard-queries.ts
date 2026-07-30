@@ -46,7 +46,7 @@ function stagesForType(type: ReviewType): StageKey[] {
 }
 
 // Classify one review into a stage, per its type's rules.
-function classify(type: ReviewType, status: ReviewStatus, acknowledgedAt: Date | null): StageKey {
+export function classify(type: ReviewType, status: ReviewStatus, acknowledgedAt: Date | null): StageKey {
   if (status === "NOT_STARTED" || status === "IN_PROGRESS") return "self_review";
   if (status === "SUBMITTED" || status === "AWAITING_MANAGER" || status === "REOPENED") return "awaiting_manager";
   // From here status is COMPLETE or ARCHIVED.
