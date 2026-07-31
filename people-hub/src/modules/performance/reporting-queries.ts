@@ -317,7 +317,7 @@ export function buildExecutiveSummary(inp: SummaryInputs): ExecutiveSummary {
   // What happened (factual state).
   if (d.total === 0) {
     s.whatHappened.push(`No completed ${inp.dimensionLabel.toLowerCase()} ratings match these filters yet.`);
-    s.whatToDo.push("No immediate investigation is recommended.");
+    s.whatToDo.push("No reporting thresholds were crossed for this timeframe.");
     return s;
   }
   const avg = d.average != null ? d.average.toFixed(1) : "n/a";
@@ -334,7 +334,7 @@ export function buildExecutiveSummary(inp: SummaryInputs): ExecutiveSummary {
     s.whatToKnow.push(`Employee self-ratings are ${Math.abs(g).toFixed(1)} ${g >= 0 ? "lower than" : "higher than"} manager ratings on average.`);
     if (Math.abs(g) > rules.selfManagerGapThreshold) {
       anyRule = true;
-      s.whatToDo.push("Self and manager ratings may warrant further review.");
+      s.whatToDo.push("The Self vs manager report shows the direction and size of this difference.");
     }
   }
 
@@ -346,8 +346,8 @@ export function buildExecutiveSummary(inp: SummaryInputs): ExecutiveSummary {
       anyRule = true;
       s.whatToKnow.push(`${divergent.length} ${inp.groupKind}${divergent.length === 1 ? "" : "s"} differ from the organisational average.`);
       s.whatToDo.push(inp.groupKind === "department"
-        ? "Department comparison may warrant further review."
-        : "Manager distribution may warrant further review.");
+        ? "The department comparison shows which departments differ and by how much."
+        : "The manager comparison shows how distributions vary.");
     }
   }
 
@@ -357,7 +357,7 @@ export function buildExecutiveSummary(inp: SummaryInputs): ExecutiveSummary {
     s.whatToKnow.push(`A larger proportion of ratings fall at 4-5 (${Math.round(d.pctAt4or5)}%).`);
   }
 
-  if (!anyRule) s.whatToDo.push("No immediate investigation is recommended.");
+  if (!anyRule) s.whatToDo.push("No reporting thresholds were crossed for this timeframe.");
   return s;
 }
 

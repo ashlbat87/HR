@@ -133,13 +133,13 @@ async function main() {
 
   // Executive Summary: department variance (0.75 > 0.5) fires; gap (0.375 < 0.75) does not.
   const summary = buildExecutiveSummary({ dimensionLabel: "Performance", distribution: dist, gap, groups: byDept, groupKind: "department" });
-  check("summary: dept review phrase present", true, summary.whatToDo.includes("Department comparison may warrant further review."));
-  check("summary: gap phrase absent", false, summary.whatToDo.includes("Self and manager ratings may warrant further review."));
+  check("summary: dept review phrase present", true, summary.whatToDo.includes("The department comparison shows which departments differ and by how much."));
+  check("summary: gap phrase absent", false, summary.whatToDo.includes("The Self vs manager report shows the direction and size of this difference."));
 
   // Executive Summary boundary: with no groups/gap and a benign distribution, "no
   // immediate investigation".
   const benign = buildExecutiveSummary({ dimensionLabel: "Performance", distribution: dist, gap: null, groups: null, groupKind: null });
-  check("summary benign: no-investigation phrase", true, benign.whatToDo.includes("No immediate investigation is recommended."));
+  check("summary benign: no-investigation phrase", true, benign.whatToDo.includes("No reporting thresholds were crossed for this timeframe."));
 
   // ---- Teardown ----
   await prisma.reviewEvent.deleteMany({ where: { review: { cycle: { periodId: period.id } } } });
