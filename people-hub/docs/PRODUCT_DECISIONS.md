@@ -344,3 +344,22 @@ why decisions were made.
 - New query getGapDirection + computeGapDirection + reviewsInGapDirection; verified by
   stage7f-gapdirection-acceptance.ts (9/9, hand-computed). Direction drill-down branch added.
 - Status: Active from v0.8 Stage 7f.
+
+## PD-029 — V1 resequenced: migration + hardening only; Moderation deferred post-V1
+- Date: 31 July 2026
+- Decision: the path to a live V1 is historical data migration (v0.9) + production hardening
+  (v0.10) only. Moderation & Calibration, Strategic Alignment, and Notifications are deferred
+  to post-V1.
+- Rationale: the platform with real historic data is impactful on its own and is the fastest
+  route to real value. Moderation in particular should be designed against REAL data (actual
+  rating distributions and inflation patterns across KSA/UAE/Bahrain) rather than fictional
+  seed data; the existing manual moderation process (Q1 exercise) covers the interim need.
+- Preserved for the future moderation design (do not re-litigate): getOfficialScore() is the
+  plug-in seam; moderation NEVER overwrites the original manager rating (PD-002/003); the
+  moderated value is stored separately and the original is always auditable; criterion
+  analysis reads item scores directly and is unaffected (PD-026); audit trail
+  (who/when/why/original) is first-class.
+- Data-handling rule: migration tooling is built and proven on SYNTHETIC/anonymised data
+  first. No real PDPL-scoped employee data enters the system before the v0.10 production gate
+  (named owners, IT/InfoSec approval, hosting + data residency confirmed, DPIA complete).
+- Status: Active.

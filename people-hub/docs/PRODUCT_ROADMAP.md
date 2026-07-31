@@ -13,11 +13,23 @@ through to the production gate. No real employee data before the production gate
 | Stage 5 | v0.6 | Review Cycle & Year Management | Next (after quarterly rating definitions) |
 | Stage 6 | v0.7 | HR Dashboard (Performance Operations Cockpit) | Complete, signed off |
 | Stage 7 | v0.8 | Reporting & Insights (incl. Manager Accountability View) | Complete and accepted |
-| Stage 8 | v0.9 | Moderation & Calibration | Planned |
-| Stage 9 | v0.10 | Strategic Alignment (Objectives & OKRs; read-first source of truth, review integration) | Approved — not yet scheduled |
-| — | v0.11 | Notifications & Reminders (incl. review deadline locking) | Planned |
-| — | v0.12 | Historical Migration & Production Hardening (real auth, hosting, residency, DPIA; historical review import) | Planned (prototype→production gate) |
-| — | v1.0 | Production-Ready MVP | Planned |
+| Stage 8 | v0.9 | Historical Data Migration (import real review history; built + tested on synthetic data first) | Next |
+| Stage 9 | v0.10 | Production Hardening (real auth, hosting, data residency, DPIA) — the production gate | Planned (prototype→production gate) |
+| — | v1.0 | Production-Ready MVP (live, with real historic data) | Planned |
+| — | post-V1 | Moderation & Calibration | Deferred — design against real data after V1 (see PD-029) |
+| — | post-V1 | Strategic Alignment (Objectives & OKRs) | Approved design — deferred post-V1 |
+| — | post-V1 | Notifications & Reminders (incl. review deadline locking) | Deferred post-V1 |
+
+**V1 resequencing (31 Jul 2026, PD-029):** the path to a live V1 is now *historical data
+migration + production hardening only*. The platform with real historic data is impactful on
+its own; feature modules (Moderation, Strategic Alignment, Notifications) are deferred to
+post-V1 so they can be designed against real usage rather than fictional data. Moderation
+especially benefits from real data (rating distributions, inflation patterns) before design.
+The moderation seam is preserved: getOfficialScore() is the plug-in point; moderation must
+NEVER overwrite the original manager rating (PD-002/003); criterion analysis stays unaffected
+(PD-026); audit trail (who/when/why/original) is first-class. Historic data migration is built
+and proven on SYNTHETIC data first; no real PDPL-scoped data enters until the v0.10 production
+gate is cleared (named owners, IT/InfoSec approval, hosting + residency confirmed, DPIA).
 
 ## In progress (before v0.6)
 - Quarterly rating definitions and per-level descriptions: seed the real performance
