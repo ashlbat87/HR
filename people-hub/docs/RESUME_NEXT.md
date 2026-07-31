@@ -1,51 +1,51 @@
-# Resume Next — v0.8 Reporting & Insights
+# Resume Next — v0.8 Reporting & Insights (design pass)
 
-Last work: 7c comparison family COMPLETE (department, manager, criterion, gaps), all
-time-scoped + drillable + neutral. Time-scoping retrofit done across ALL reports.
-If restarted: `npm run typecheck`, `npm run db:reset`, then
-`npx tsx scripts/seed-reporting-demo.ts` (creates "2026 Reporting Demo" period, sets it
-CURRENT, Q1 + Q2 quarterly cycles + a values cycle, ~46 perf / ~24 values reviews).
-NOTE: if reports look empty, a different (empty) period is current — re-run the demo seed.
+Last work: design system established + landing rebuilt as the reference implementation
+(PD-027, commit 4485e52). If restarted: `npm run typecheck`, `npm run db:reset`, then
+`npx tsx scripts/seed-reporting-demo.ts` (demo period "2026 Reporting Demo" current, Q1+Q2
+quarterly + values cycle). If reports look empty, wrong period is current — re-run demo seed.
+After editing lots of styles/routes: `rm -rf .next` before viewing.
 
-## Done (committed, on GitHub)
-- Time-scoping: reporting-scope.ts + ScopeSelector.tsx (first-class URL filter); every
-  report (distribution, comparisons, landing, criterion, gaps) honours a per-report
-  timeframe selector; default = latest meaningful cycle (PD-024); Full Year lists pooled
-  cycles (PD-025); drill-down inherits scope.
-- Distribution reports (performance, values): hero chart, KPI strip (avg/median/mode/
-  %4-5/completed), drill-down.
-- Comparison family: /reporting/departments, /managers (GroupComparisonView), /criterion
-  (CriterionAnalysisView, Diagnostic layer PD-018/PD-026, reads item scores directly),
-  /gaps (GapAnalysisView, self-vs-manager, neutral).
-- Drill-down (/reporting/drilldown) handles: level buckets, group (dept/manager),
-  criterion+level, gap buckets. Counts always match the source.
-- Verified: stage7a 27/27, stage7c-criterion 12/12; regressions green.
-- Decisions: PD-023/024/025 (time scoping), PD-026 (criterion reads item scores).
-- Function comparison removed (== department at Tarabut). Backlog: cycle-creation governance.
+## Done (committed)
+- Full reporting suite BUILT + time-scoped + drillable (distribution, comparison family
+  [dept/manager/criterion/gaps], accountability, completion) — stages 7a-7d.
+- 7e CSV export: one HR-guarded /reporting/export route, self-describing CSV, Export CSV in
+  every report header (PD-025).
+- 7f DESIGN SYSTEM: globals.css extended additively (no existing tokens/classes changed) with
+  --shadow-lift, spacing scale, and pattern classes (.rpt-masthead, .timeframe-box,
+  .section-label, .exec-summary, .kpi-strip/.kpi-card, .attention, .rpt-group/.rpt-card).
+  docs/REPORTING_DESIGN_SYSTEM.md is the standard. PD-027.
+- LANDING rebuilt as reference: masthead + primary timeframe control, single calm exec
+  summary, five-KPI strip w/ population subtitles, neutral threshold-driven Needs Attention,
+  grouped cards (Performance/Process/Values), primaries first. Data wiring unchanged.
 
-## Resume point — STEP: 7e Exports
-The reporting design calls for format-agnostic export (CSV in v0.8; Excel/PDF future). Each
-report should export its underlying data, carrying "Last refreshed" (GST) and the applied
-timeframe/filters into the export (PD-025: state timeframe + population). Decide: a shared
-export helper (report -> rows -> CSV download) wired into each report's header, honouring the
-current scope. HR-only. No new data — exports the same scoped data already shown.
-After 7e: 7f = docs update (metric dictionary + design note "as-built") + v0.8 sign-off, then
-v0.9 Moderation.
+## Resume point — STEP: retrofit the report PAGES to the design language
+The landing is the reference; report pages still use the older inline-styled header
+(plain h1 + ScopeSelector + timeframe chip). Retrofit each to the design language
+(masthead/section-label/timeframe-box, consistent card + KPI styling), PRESENTATION ONLY —
+no query/data changes, harnesses stay green. One at a time, commit each. Suggested order:
+1. DistributionView (most used; sets the pattern; has KPI strip already)
+2. GroupComparisonView (departments + managers)
+3. CriterionAnalysisView
+4. GapAnalysisView
+5. ManagerAccountabilityView
+6. CompletionView
+Each report "adopts the language while optimising for its content" — feel like one product,
+not identical (PD-027).
 
-## Reporting suite — ALL BUILT (committed)
-Landing (Exec Summary / Key Highlights / Explore Reports / reserved AI slot); distribution
-(performance, values); comparison family (departments, managers, criterion [Diagnostic
-PD-018/026], gaps); Manager Accountability (PD-008); Completion funnel. All time-scoped
-(ScopeSelector, PD-023/024/025), drillable, neutral. Harnesses: 7a 27/27, criterion 12/12,
-7d 8/8. Decisions through PD-026.
-
+## Then: FINAL UX consistency review
+Apply the logged improvements together (see docs/REPORTING_DESIGN_SYSTEM.md "Improvements
+backlog"): (a) ScopeSelector label leaks "(open)" status — clean display label; (b) exec
+summary "What HR should do" reads evaluatively ("may warrant review") — soften
+buildExecutiveSummary phrasing to observational (PD-010); (c) optionally restyle ScopeSelector
+to visually match the timeframe-box. Then v0.8 SIGN-OFF, then v0.9 Moderation.
 
 ## Watch-outs
-- Big files via clean `cat >` heredoc; python str.replace often fails on whitespace — prefer
-  regex-tolerant or view exact lines first with `sed -n 'A,Bp' | cat -A`.
-- `rm -rf .next` if typecheck errors reference deleted routes.
-- Harnesses one-at-a-time after db:reset; reseed (+ demo seed) before viewing.
-- If reports empty: wrong period is current -> re-run seed-reporting-demo.
+- Presentation-only retrofits: never touch queries; run a harness after each if unsure.
+- Big paste = clean `cat >` heredoc ending exactly at ENDOFFILE; python edits often miss on
+  whitespace (view with `sed -n 'A,Bp' | cat -A` first, or use regex-tolerant).
+- `rm -rf .next` after style/route changes before viewing.
+- Do NOT upgrade Prisma (stay 5.22.0) despite the CLI banner.
 
 ## Orientation
 cd /workspaces/HR/people-hub && git --no-pager log --oneline -5 && git status --short && cat docs/RESUME_NEXT.md
