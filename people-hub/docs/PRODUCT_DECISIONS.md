@@ -315,3 +315,18 @@ why decisions were made.
 - Impact: getCriterionBreakdown + reviewsInCriterionBucket in reporting-queries.ts; verified
   by stage7c-criterion-acceptance.ts (12/12, hand-computed).
 - Status: Active. Applies-from: v0.8 criterion report; persists through v0.9 moderation.
+
+## PD-027 — Reporting & Insights design system (landing = reference)
+- Date: 30 July 2026
+- Decision: the approved Reporting landing establishes the module's design language
+  (typography, spacing, card styling, KPI presentation, navigation, timeframe control, hover
+  states, hierarchy). Captured in docs/REPORTING_DESIGN_SYSTEM.md; tokens/classes added to
+  globals.css additively (no existing colour/neutral tokens redefined; no existing classes
+  changed).
+- Scope: information architecture UNCHANGED. This is presentation only. "Needs Attention" is
+  the one new IA element, added deliberately, and is neutral/observational (upholds PD-008,
+  PD-010).
+- Working rule: report pages adopt the language while optimising for their content (feel like
+  one product, not identical). Improvements found while building later pages are RECORDED in
+  the design-system doc and applied together at a final UX consistency review, never ad hoc.
+- Status: Active. Applies from v0.8 Stage 7f onward.
