@@ -59,3 +59,9 @@ consistently across the module at the FINAL UX CONSISTENCY REVIEW.
   / PD-010). Soften buildExecutiveSummary recommendation phrasing to observational wording.
 - Consider restyling ScopeSelector to visually match the timeframe-box treatment (currently a
   native select inside the box; works, but not pixel-matched to the mock).
+- ScopeSelector visual prominence: it's a plain native <select>; should stand out more as a
+  primary control (styled to match the timeframe-box treatment). Do once, consistently, across
+  all pages. (Combines with the earlier "(open)" suffix + match-timeframe-box items.)
+- Accountability (and similar plain tables): when all rows are similar (e.g. all 100%), the
+  page reads flat. Add subtle STRUCTURE (e.g. a thin completion bar per row) WITHOUT adding
+  evaluative weight (respect PD-008: participation not quality). Apply at final review.
