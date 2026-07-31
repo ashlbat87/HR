@@ -50,16 +50,18 @@ The landing is the design system. Improvements found while building/retrofitting
 pages are NOT applied ad hoc — they are RECORDED in the "Improvements backlog" below and applied
 consistently across the module at the FINAL UX CONSISTENCY REVIEW.
 
-## Improvements backlog (apply at final consistency review)
-- ScopeSelector renders the raw cycle label including status suffixes (e.g. "Q2 2026 (demo)
+## Improvements backlog
+Status: items below marked [DONE] were applied in the Stage 7f consistency review (part one).
+
+- [DONE] ScopeSelector renders the raw cycle label including status suffixes (e.g. "Q2 2026 (demo)
   (open)"). The "(open)" state leaks into an executive-facing control. Clean the selector's
   display label (show label only; convey open/closed elsewhere if needed).
-- Executive summary "What HR should do" can read evaluatively (e.g. "Department comparison may
+- [DONE] Executive summary "What HR should do" can read evaluatively (e.g. "Department comparison may
   warrant further review"), which conflicts with the neutral-observation principle (brief pt 4
   / PD-010). Soften buildExecutiveSummary recommendation phrasing to observational wording.
-- Consider restyling ScopeSelector to visually match the timeframe-box treatment (currently a
+- [DONE] Consider restyling ScopeSelector to visually match the timeframe-box treatment (currently a
   native select inside the box; works, but not pixel-matched to the mock).
-- ScopeSelector visual prominence: it's a plain native <select>; should stand out more as a
+- [DONE] ScopeSelector visual prominence: it's a plain native <select>; should stand out more as a
   primary control (styled to match the timeframe-box treatment). Do once, consistently, across
   all pages. (Combines with the earlier "(open)" suffix + match-timeframe-box items.)
 - Accountability (and similar plain tables): when all rows are similar (e.g. all 100%), the
