@@ -649,3 +649,80 @@ export async function getCompletionFunnel(scope: ReportingScope = {}): Promise<{
     total: reviews.length,
   };
 }
+
+// ---- Gap DIRECTION analysis (Stage 7f redesign) ----
+// Answers "where do employees and managers see performance differently?" with DIRECTION, not
+// just magnitude. gap = manager - self (precise). Direction from the ROUNDED gap (consistent
+// with size buckets): >0 manager rated higher, =0 agreed, <0 employee rated higher.
+// Per-department signed average shows which way each department leans. Department only
+// (manager-level intentionally excluded — self-vs-manager per manager reads as evaluating
+// managers, conflicts with PD-008). Neutral throughout.
+
+export interface GapDirectionReport {
+  total: number; // reviews with both a manager and a self score
+  averageGap: number | null; // signed mean (manager - self), precise
+  direction: { employeeHigher: number; agreed: number; managerHigher: number };
+  size: { zero: number; one: number; twoPlus: number };
+  byDepartment: { department: string; n: number; averageGap: number }[]; // signed, sorted
+}
+
+export function computeGapDirection(data: ReviewDatum[]): GapDirectionReport {
+  const withBoth = data.filter((d) => d.selfScore != null);
+  const total = withBoth.length;
+
+  const direction = { employeeHigher: 0, agreed: 0, managerHigher: 0 };
+  const size = { zero: 0, one: 0, twoPlus: 0 };
+  const gaps: number[] = [];
+  const byDeptMap = new Map<string, number[]>();
+
+  for (const d of withBoth) {
+    const gap = getOfficialScore(d) - (d.selfScore as number);
+    gaps.push(gap);
+    const rounded = roundHalfUp(gap);
+    // Direction from rounded gap.
+    if (rounded > 0) direction.managerHigher++;
+    else if (rounded < 0) direction.employeeHigher++;
+    else direction.agreed++;
+    // Size from |rounded gap|.
+    const mag = Math.abs(rounded);
+    if (mag === 0) size.zero++;
+    else if (mag === 1) size.one++;
+    else size.twoPlus++;
+    // Per department (signed gaps).
+    const dept = d.department ?? "Unassigned";
+    if (!byDeptMap.has(dept)) byDeptMap.set(dept, []);
+    byDeptMap.get(dept)!.push(gap);
+  }
+
+  const byDepartment = [...byDeptMap.entries()]
+    .map(([department, gs]) => ({ department, n: gs.length, averageGap: mean(gs) ?? 0 }))
+    .sort((a, b) => b.averageGap - a.averageGap); // most manager-higher first
+
+  return { total, averageGap: mean(gaps), direction, size, byDepartment };
+}
+
+export async function getGapDirection(scope: ReportingScope = {}): Promise<GapDirectionReport> {
+  const data = await getReviewData("PERFORMANCE", scope);
+  return computeGapDirection(data);
+}
+
+// Drill-down for a DIRECTION bucket ("employeeHigher" | "agreed" | "managerHigher").
+export function reviewsInGapDirection(data: ReviewDatum[], dir: "employeeHigher" | "agreed" | "managerHigher"): DrillReview[] {
+  const out: DrillReview[] = [];
+  for (const d of data) {
+    if (d.selfScore == null) continue;
+    const rounded = roundHalfUp(getOfficialScore(d) - d.selfScore);
+    const thisDir = rounded > 0 ? "managerHigher" : rounded < 0 ? "employeeHigher" : "agreed";
+    if (thisDir === dir) {
+      out.push({
+        reviewId: d.reviewId,
+        employeeName: d.employeeName,
+        managerName: d.managerName,
+        department: d.department,
+        officialScore: getOfficialScore(d),
+      });
+    }
+  }
+  out.sort((a, b) => a.employeeName.localeCompare(b.employeeName));
+  return out;
+}

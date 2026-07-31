@@ -8,7 +8,7 @@ import { prisma } from "@/shared/lib/prisma";
 import { resolveScope, scopeToQuery } from "@/modules/performance/reporting-scope";
 import Link from "next/link";
 import {
-  getReviewData, reviewsInBucket, reviewsInGroup, reviewsInCriterionBucket, reviewsInGapBucket,
+  getReviewData, reviewsInBucket, reviewsInGroup, reviewsInCriterionBucket, reviewsInGapBucket, reviewsInGapDirection,
   type RatingDimension, type GroupBy,
 } from "@/modules/performance/reporting-queries";
 
@@ -52,6 +52,17 @@ export default async function ReportingDrilldownPage({ searchParams }: { searchP
       <span className="chip">Type: {dimLabel}</span>
       <span className="chip">Criterion: {CRIT_LABEL[criterion]}</span>
       <span className="chip">Rating: {LEVEL_LABEL[level]}</span>
+    </>);
+  } else if (sp.direction === "employeeHigher" || sp.direction === "agreed" || sp.direction === "managerHigher") {
+    const dir = sp.direction as "employeeHigher" | "agreed" | "managerHigher";
+    rows = reviewsInGapDirection(data, dir);
+    const DIR_LABEL: Record<string, string> = { employeeHigher: "Employee rated higher", agreed: "Agreed (same rating)", managerHigher: "Manager rated higher" };
+    heading = `Self vs manager — ${DIR_LABEL[dir].toLowerCase()}`;
+    breadcrumbTail = (<><Link href="/reporting/gaps">Self vs manager gaps</Link> › {DIR_LABEL[dir]}</>);
+    filterChips = (<>
+      <span className="chip">Timeframe: {scopeLabel}</span>
+      <span className="chip">Type: {dimLabel}</span>
+      <span className="chip">Direction: {DIR_LABEL[dir]}</span>
     </>);
   } else if (sp.gap === "zero" || sp.gap === "one" || sp.gap === "twoPlus") {
     const gapBucket = sp.gap as "zero" | "one" | "twoPlus";

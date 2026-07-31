@@ -330,3 +330,17 @@ why decisions were made.
   one product, not identical). Improvements found while building later pages are RECORDED in
   the design-system doc and applied together at a final UX consistency review, never ad hoc.
 - Status: Active. Applies from v0.8 Stage 7f onward.
+
+## PD-028 — Self-vs-manager gap report redesigned around DIRECTION (not just magnitude)
+- Date: 30 July 2026
+- Decision: the gaps report answers "where do employees and managers see performance
+  differently?" with a narrative: executive summary, DIRECTION of disagreement (employee
+  higher / agreed / manager higher) as the centrepiece, size of disagreement, and a
+  department-level breakdown. Direction is computed from the rounded signed gap
+  (manager − self); consistent with existing rounding.
+- "Where": DEPARTMENT ONLY. Manager-level self-vs-manager disagreement was intentionally
+  excluded — it reads as evaluating managers on a non-quality number, conflicting with PD-008.
+- Neutral: purple-family segments only (no red/green); no implication either side is right.
+- New query getGapDirection + computeGapDirection + reviewsInGapDirection; verified by
+  stage7f-gapdirection-acceptance.ts (9/9, hand-computed). Direction drill-down branch added.
+- Status: Active from v0.8 Stage 7f.
