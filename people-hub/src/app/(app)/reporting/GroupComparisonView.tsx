@@ -1,6 +1,7 @@
-// Shared group-comparison view (v0.8, Stage 7c). Department / function / manager comparisons
-// share this shape ("where do patterns differ?"). Neutral language; "based on N"; drill-down
-// per group; performance/values separate. Uses computeGroupComparison from the 7a layer.
+// Shared group-comparison view (v0.8, Stage 7f design retrofit). Department / manager
+// comparisons ("where do patterns differ?"). Adopts the reporting design system (PD-027):
+// report header + timeframe control, calm overview, group rows in a card. DATA/BEHAVIOUR
+// UNCHANGED: scope, selector, drill-down, export, neutral diff-from-org chips (PD-025).
 
 import Link from "next/link";
 import {
@@ -8,14 +9,6 @@ import {
 } from "@/modules/performance/reporting-queries";
 import { resolveScope, scopeToQuery, getCyclesForDimension, fullYearAvailable } from "@/modules/performance/reporting-scope";
 import { ScopeSelector } from "./ScopeSelector";
-
-function nowGST(): string {
-  const d = new Date(Date.now() + 4 * 3600 * 1000);
-  const month = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][d.getUTCMonth()];
-  const hh = String(d.getUTCHours()).padStart(2, "0");
-  const mm = String(d.getUTCMinutes()).padStart(2, "0");
-  return `${d.getUTCDate()} ${month} ${d.getUTCFullYear()}, ${hh}:${mm} GST`;
-}
 
 const GROUP_NOUN: Record<GroupBy, string> = { department: "department", func: "function", manager: "manager" };
 
@@ -25,10 +18,7 @@ export async function GroupComparisonView({ dimension, groupBy, title, params }:
   if (!scope) {
     return (
       <div>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-          <div style={{ width: 3, height: 22, background: "var(--purple)", borderRadius: 2 }} />
-          <h1 style={{ margin: 0 }}>{title}</h1>
-        </div>
+        <div className="section-label"><span className="bar" /><h2>{title}</h2></div>
         <div className="empty">No review period is set up yet.</div>
       </div>
     );
@@ -39,46 +29,56 @@ export async function GroupComparisonView({ dimension, groupBy, title, params }:
   const groups = computeGroupComparison(dimension, data, groupBy);
   const orgAvg = data.length ? data.reduce((a, d) => a + d.managerScore, 0) / data.length : null;
   const noun = GROUP_NOUN[groupBy];
-  const refreshed = nowGST();
   const maxAvg = 5;
 
   const scopeQs = scope.kind === "cycle" ? `&cycle=${scope.cycleId}` : `&period=${scope.periodId}&scope=year`;
   const drillBase = `/reporting/drilldown?dimension=${dimension}${scopeQs}&group=${groupBy}`;
   const pooledList = cycles.map((c) => c.label).join(", ");
-  const timeframeLabel = scope.kind === "cycle" ? `Showing: ${scope.cycleLabel}` : `Showing: Full year ${scope.periodLabel} — pooled across ${cycles.length} ${dimLabel.toLowerCase()} cycle${cycles.length === 1 ? "" : "s"}: ${pooledList}`;
+  const timeframeStatement = scope.kind === "cycle"
+    ? scope.cycleLabel
+    : `Full year ${scope.periodLabel} — pooled across ${cycles.length} ${dimLabel.toLowerCase()} cycle${cycles.length === 1 ? "" : "s"}: ${pooledList}`;
+  const population = data.length;
 
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 2 }}>
-        <div style={{ width: 3, height: 22, background: "var(--purple)", borderRadius: 2 }} />
-        <h1 style={{ margin: 0 }}>{title}</h1>
+      <div className="rpt-masthead">
+        <div className="intro">
+          <h1 style={{ margin: 0 }}>{title}</h1>
+          <p style={{ marginTop: 6 }}>
+            <Link href="/reporting">Reporting &amp; Insights</Link> › {title}
+          </p>
+        </div>
+        <div className="timeframe-box">
+          <div className="tlabel">Showing</div>
+          <ScopeSelector
+            cycles={cycles.map((c) => ({ id: c.id, label: c.label, isOpen: c.isOpen, meaningful: c.meaningful }))}
+            fullYearAvailable={yearAvail}
+            currentKind={scope.kind}
+            currentCycleId={scope.kind === "cycle" ? scope.cycleId : undefined}
+            periodLabel={scope.periodLabel}
+          />
+          <div className="tsub"><b>{population}</b> completed review{population === 1 ? "" : "s"}</div>
+        </div>
       </div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginLeft: 13, marginBottom: 14 }}>
-        <span className="muted" style={{ fontSize: 12 }}>
-          <Link href="/reporting">Reporting &amp; Insights</Link> › {title}
-        </span>
-        <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span className="muted" style={{ fontSize: 11, opacity: 0.7 }}>Last refreshed {refreshed}</span>
-          <a href={`/reporting/export?report=${groupBy}&dimension=${dimension}${scopeQs}`} className="btn secondary" style={{ padding: "5px 12px", fontSize: 13 }}>Export CSV</a>
-        </span>
+
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginTop: 14 }}>
+        <span className="muted" style={{ fontSize: 12.5 }}>{timeframeStatement}</span>
+        <a href={`/reporting/export?report=${groupBy}&dimension=${dimension}${scopeQs}`} className="btn secondary" style={{ padding: "6px 14px", fontSize: 13 }}>Export CSV</a>
       </div>
 
       {groups.length === 0 ? (
-        <div className="empty">No completed {dimLabel.toLowerCase()} ratings match these filters yet.</div>
+        <div className="empty" style={{ marginTop: 16 }}>No completed {dimLabel.toLowerCase()} ratings for this timeframe yet.</div>
       ) : (
         <>
-          <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "var(--radius-md)", padding: "10px 14px", marginBottom: 14, fontSize: 13, lineHeight: 1.55 }}>
-            <span className="muted" style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.04em" }}>Overview</span>
-            <span> · {dimLabel} ratings compared across {groups.length} {noun}{groups.length === 1 ? "" : "s"}. Organisational average {orgAvg != null ? orgAvg.toFixed(1) : "—"}.</span>
+          <div className="section-label"><span className="bar" /><h2>Overview</h2></div>
+          <div className="exec-summary">
+            <div className="row">
+              <div className="rlabel">Comparison</div>
+              <div className="rbody">{dimLabel} ratings compared across <span className="metric">{groups.length}</span> {noun}{groups.length === 1 ? "" : "s"}. Organisational average <span className="metric">{orgAvg != null ? orgAvg.toFixed(1) : "—"}</span>.</div>
+            </div>
           </div>
 
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 14 }}>
-            <span className="muted" style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em", alignSelf: "center" }}>Filters</span>
-            <span className="chip">Timeframe: {scope.kind === "cycle" ? scope.cycleLabel : `Full year ${scope.periodLabel}`}</span>
-            <span className="chip">Type: {dimLabel}</span>
-            <span className="chip">Grouped by: {noun}</span>
-          </div>
-
+          <div className="section-label"><span className="bar" /><h2>By {noun}</h2></div>
           <div className="card">
             {groups.map((g) => {
               const w = g.average != null ? Math.round((g.average / maxAvg) * 100) : 0;
