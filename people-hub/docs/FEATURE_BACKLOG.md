@@ -170,3 +170,15 @@ Possible future work (belongs with period/cycle management, not reporting):
 - Guardrail on how many quarterly cycles a period may contain.
 - Warn/prevent duplicate or non-standard cycles within a period.
 Not scheduled; captured so the governance gap is not forgotten.
+
+## Employee lifecycle management (add / terminate / bulk onboarding) — separate from v0.9 migration
+Ongoing operational need (NOT the one-off historic migration): people join and leave
+continuously, so the Hub needs a durable way to add a new employee, terminate/offboard an
+employee (retaining their performance records — no data wipe, PDPL/SAMA), and possibly
+bulk-onboard from a roster. Distinct from v0.9 (a one-off review-data load) in design,
+governance, and lifespan.
+Note: the INITIAL data load (v0.9) may need to seed the current employee roster first (so
+historic reviews can attach to real employees) — that seeding is part of the migration.
+Ongoing add/terminate AFTER go-live is this separate feature. Scope separately (likely
+post-V1 unless needed for launch). Check what Stage 1 (Foundation directory) already provides
+before designing.
