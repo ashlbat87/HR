@@ -171,3 +171,34 @@
   states (v0.9). Architected so v0.8 Insights/Moderation reuses the same query helpers.
 - **Prototype release:** fictional data, mock auth. No real data before the production
   gate (v0.12).
+
+## Stage 7 / Release v0.8 (Reporting & Insights) — COMPLETE and ACCEPTED
+
+- **Status:** Complete and accepted.
+- **Approved by:** Ash (Head of People).
+- **Date:** 31 July 2026.
+- **Design notes approved before build:** docs/STAGE7_v0_8_DESIGN.md; time-scoping in
+  docs/REPORTING_TIME_SCOPING_DESIGN.md; design system in docs/REPORTING_DESIGN_SYSTEM.md.
+- **Verification:** acceptance harnesses stage7a 27/27, stage7c-criterion 12/12,
+  stage7d-accountability 8/8, stage7f-gapdirection 9/9; regressions Stage 2 6/6, Stage 5 8/8;
+  typecheck clean; manual UI walk-through and a two-part consistency review by Ash.
+- **Delivered:** HR-only Insights Hub — a landing (executive summary, KPI strip, neutral
+  threshold-driven Needs Attention, grouped report cards) plus seven reports: performance and
+  values distribution, department and manager comparison, performance-criterion analysis
+  (Diagnostic layer), self-vs-manager gaps (redesigned around direction), manager accountability
+  (participation), and completion funnel. Time-scoping across all reports (first-class selector,
+  default latest-meaningful cycle, opt-in full-year pooling stated explicitly); scope-inheriting
+  drill-down; self-describing CSV export on every report; a design system (globals.css pattern
+  classes + reference landing) applied consistently across all pages.
+- **Decisions (approved):** PD-001..PD-028. Key: performance and values never blended; manager
+  rating is the official score with a v0.9 moderation seam that never overwrites the original;
+  every metric drills down; reporting time-scoping (cycle default, opt-in full year, never
+  silent); criterion analysis reads item scores directly (unaffected by moderation);
+  accountability is participation not quality; gaps report answers DIRECTION not just magnitude
+  with a department-only "where"; neutral non-evaluative language throughout; rule-based
+  summaries (no AI).
+- **Deferred (backlogged):** AI insights panel (reserved, not built); cycle-creation governance
+  (structured labels/validation); manager-level gap breakdown (excluded on PD-008 grounds);
+  remaining design-system refinements logged in docs/REPORTING_DESIGN_SYSTEM.md.
+- **Prototype release:** fictional data, mock auth. No real data before the production gate
+  (v0.12): real auth, hosting, data residency, and DPIA required.

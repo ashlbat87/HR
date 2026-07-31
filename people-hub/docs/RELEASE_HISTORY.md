@@ -13,7 +13,7 @@ narrative lives in docs/PROJECT_JOURNAL.md; approval detail in docs/APPROVALS.md
 | Stage 5 (design) | v0.5.1 | Review Experience & Rating Design System | Complete, approved |
 | Stage 5 | v0.6 | Review Cycle & Period Management | Complete, approved |
 | Stage 6 | v0.7 | HR Dashboard (Performance Operations Cockpit) | Complete, signed off |
-| Stage 7 | v0.8 | Reporting & Insights (incl. Manager Accountability View) | In progress (UX frozen) |
+| Stage 7 | v0.8 | Reporting & Insights (incl. Manager Accountability View) | Complete and accepted |
 | Stage 8 | v0.9 | Moderation & Calibration | Planned |
 | Stage 9 | v0.10 | Strategic Alignment (Objectives & OKRs; read-first) | Approved — not yet scheduled |
 | — | v0.11 | Notifications & Reminders (incl. review deadline locking) | Planned |

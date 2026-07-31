@@ -1,44 +1,29 @@
-# Resume Next — v0.8 Reporting & Insights (final consistency review + sign-off)
+# Resume Next — v0.9 Moderation & Calibration
 
-Last work: ALL report pages retrofitted to the design system + gaps report redesigned around
-direction (PD-028). If restarted: `npm run typecheck`, `npm run db:reset`, then
+v0.8 Reporting & Insights is COMPLETE and ACCEPTED (signed off 31 Jul 2026, see
+docs/APPROVALS.md). Next milestone: v0.9 Moderation & Calibration.
+If restarted: `npm run typecheck`, `npm run db:reset`, then
 `npx tsx scripts/seed-reporting-demo.ts` (demo period current; re-run if reports look empty).
-`rm -rf .next` before viewing after style changes.
+`rm -rf .next` before viewing after style changes. Do NOT upgrade Prisma (stay 5.22.0).
 
-## Done (committed)
-- Design system established (globals.css pattern classes + docs/REPORTING_DESIGN_SYSTEM.md,
-  PD-027); landing rebuilt as reference.
-- ALL SEVEN report views retrofitted to the design language: distribution (perf+values),
-  departments, managers, criterion, gaps, accountability, completion. Each has the report
-  header + timeframe-box, section labels, calm cards.
-- Gaps report REDESIGNED around DIRECTION (PD-028): narrative summary + direction segmented
-  bar (employee/agreed/manager higher) + size segmented bar + by-department signed-lean table;
-  new getGapDirection query (harness stage7f-gapdirection 9/9) + direction drill-down branch;
-  department-only for "where" (manager-level excluded per PD-008).
-- Accountability got a per-row completion bar (structural, PD-008-safe). Criterion got the
-  compact meta-line treatment.
-- Regressions green: 7a 27/27, criterion 12/12, 7d 8/8, gap-direction 9/9.
+## v0.8 — done and signed off
+Full reporting suite (landing + 7 reports), time-scoped, drillable, CSV export, design system
+applied consistently, gaps redesigned around direction. Harnesses: 7a 27/27, criterion 12/12,
+7d 8/8, gap-direction 9/9; regressions stage2 6/6, stage5 8/8. Decisions PD-001..PD-028.
 
-## Resume point — STEP: FINAL UX CONSISTENCY REVIEW
-Walk every reporting page against docs/REPORTING_DESIGN_SYSTEM.md and apply the logged
-"Improvements backlog" + "Pattern refinements" together (NOT ad hoc — this is the pass where
-they land):
-1. ScopeSelector: (a) leaks "(open)" status into the label — show clean label only; (b) make
-   it more prominent / match the timeframe-box treatment (it's a plain native select). Do once,
-   consistently, all pages.
-2. Executive summary "What HR should do" reads evaluatively ("may warrant review") — soften
-   buildExecutiveSummary recommendation phrasing to observational (PD-010).
-3. Confirm the compact meta-line pattern (criterion) is applied wherever stat+chart blocks
-   appear; confirm section-label / masthead / card spacing consistent across all pages.
-4. Any remaining plain-table flatness handled without evaluative weight (PD-008).
-Then: docs update (metric dictionary + design note "as-built"), then v0.8 SIGN-OFF, then v0.9
-Moderation & Calibration.
+## Resume point — v0.9 Moderation & Calibration (Planned)
+Not yet designed. Key architectural seam already in place: getOfficialScore() in
+reporting-queries.ts returns the manager score TODAY, and is the documented seam where
+moderation will apply — PD-002/003 require that moderation NEVER overwrites the original
+manager rating (store the moderated value separately; original always preserved/auditable).
+Criterion analysis reads item scores directly and is intentionally UNAFFECTED by moderation
+(PD-026). Start v0.9 with a design note (approval-gated, like every prior stage) before build.
+See docs/FEATURE_BACKLOG.md for the v0.9 moderation data-model spec notes.
 
-## Watch-outs
-- Big paste corruption: use CHUNKED `cat >>` heredocs (3-4 chunks), fresh prompt before each;
-  verify head -1 / wc -l per chunk. (A one-shot giant heredoc corrupted a file this session.)
-- Presentation edits only in the review; if touching queries, run the harness.
-- `rm -rf .next` after style changes. Do NOT upgrade Prisma (stay 5.22.0).
+## Also open (backlog, not v0.9-blocking)
+- Cycle-creation governance (structured labels/validation) — docs/FEATURE_BACKLOG.md.
+- Design-system refinements not yet applied — docs/REPORTING_DESIGN_SYSTEM.md.
+- Production gate is v0.12 (real auth, hosting, data residency, DPIA).
 
 ## Orientation
 cd /workspaces/HR/people-hub && git --no-pager log --oneline -6 && git status --short && cat docs/RESUME_NEXT.md
