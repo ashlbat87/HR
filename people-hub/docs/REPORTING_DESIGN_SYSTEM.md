@@ -65,3 +65,9 @@ consistently across the module at the FINAL UX CONSISTENCY REVIEW.
 - Accountability (and similar plain tables): when all rows are similar (e.g. all 100%), the
   page reads flat. Add subtle STRUCTURE (e.g. a thin completion bar per row) WITHOUT adding
   evaluative weight (respect PD-008: participation not quality). Apply at final review.
+
+## Pattern refinements (adopt across module at final review)
+- Stat + chart blocks (e.g. criterion cards): title on its own line, then a COMPACT muted
+  meta line ("<avg> average · N% at 4-5 · N reviews", avg emphasised), then the chart. Avoid a
+  long explanatory sentence jammed beside the title (reads cluttered). This is the calm,
+  KPI-consistent treatment.
