@@ -35,10 +35,10 @@ export function normaliseName(raw: string | null | undefined): string {
 export const VALUES = {
   sheet: "Values Review",
   values: [
-    { key: "innovate", label: "Innovate with Impact", row: 7 },
-    { key: "results", label: "Drive Exceptional Results", row: 8 },
-    { key: "customers", label: "Deliver Value to Customers", row: 9 },
-    { key: "collective", label: "Win Collectively", row: 10 },
+    { key: "INNOVATE_WITH_IMPACT", label: "Innovate with Impact", row: 7 },
+    { key: "DRIVE_EXCEPTIONAL_RESULTS", label: "Drive Exceptional Results", row: 8 },
+    { key: "DELIVER_VALUE_TO_CUSTOMERS", label: "Deliver Value to Customers", row: 9 },
+    { key: "WIN_COLLECTIVELY", label: "Win Collectively", row: 10 },
   ],
   mgrCol: "D",
   selfCol: "E",

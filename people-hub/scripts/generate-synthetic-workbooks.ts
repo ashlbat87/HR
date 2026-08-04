@@ -80,7 +80,7 @@ const aliceQ: Partial<Record<QuarterSheet, QuarterRatings>> = {
   "Q3 Review": { impact: [5, 5], quality: [4, 4], delivery: [4, 5] },
   "Q4 Review": { impact: [4, 4], quality: [5, 4], delivery: [5, 5] },
 };
-const aliceV: Partial<Record<string, Pair>> = { innovate: [4, 4], results: [5, 4], customers: [4, 4], collective: [5, 5] };
+const aliceV: Partial<Record<string, Pair>> = { INNOVATE_WITH_IMPACT: [4, 4], DRIVE_EXCEPTIONAL_RESULTS: [5, 4], DELIVER_VALUE_TO_CUSTOMERS: [4, 4], WIN_COLLECTIVELY: [5, 5] };
 
 const bob: Person = { name: "Bob Sample", role: "Analyst", dept: "Operations", manager: "Manager One" };
 const bobQ: Partial<Record<QuarterSheet, QuarterRatings>> = {
