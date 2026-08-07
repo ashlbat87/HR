@@ -363,3 +363,32 @@ why decisions were made.
   first. No real PDPL-scoped employee data enters the system before the v0.10 production gate
   (named owners, IT/InfoSec approval, hosting + data residency confirmed, DPIA complete).
 - Status: Active.
+
+## PD-030 — Historical migration (v0.9): design decisions
+- Date: 07 August 2026
+- One-off CLI tool (scripts/migrate-history.ts), not an in-app upload. Reviews are created
+  natively in-app going forward; this loads history only. A controlled, operator-run,
+  report-producing script is more defensible for InfoSec/DPIA than an open upload screen.
+- Identity: match workbook NAME to Hub displayName (normalised). The workbook has no email;
+  the Hub keys on workEmail. Anything not matching exactly one employee is QUARANTINED for
+  manual resolution — no auto-create, no guessing.
+- Manager: taken from the Hub employee record (the org's source of truth), NOT the workbook's
+  typed manager name (which is recorded in the audit detail only). If the Hub employee has no
+  manager, the file is quarantined.
+- Recompute-not-import: quarterly and values scores are recomputed by the app's own
+  calculateQuarterlyScore from the manager ratings; the spreadsheet's cached formula values
+  are never imported. Migrated data is identical in shape and calculation to native reviews.
+- Creation approach (Option B): imported reviews are written directly to the COMPLETE terminal
+  state with an honest "review.import_historic" audit entry. The tool does NOT drive the
+  interactive workflow functions or impersonate employees/managers — that would create a false
+  audit trail. Honest audit was preferred over API reuse.
+- Whole-file quarantine: any invalid value anywhere in a workbook holds the ENTIRE file
+  (all-or-nothing per person), so no partial or silently-wrong record is created. Absent data
+  (an empty quarter) is NOT an error — it is skipped.
+- Historic period is find-or-created with isCurrent:false — loading history never disturbs the
+  live current period.
+- Idempotent: keyed by employee+cycle+type; re-running updates in place, never duplicates.
+- Data-handling: built and PROVEN on synthetic data (harness stage8 22/22). No real
+  PDPL-scoped data before the v0.10 production gate (real auth, approved hosting, residency,
+  DPIA, named owner, InfoSec sign-off).
+- Status: Active from v0.9.
