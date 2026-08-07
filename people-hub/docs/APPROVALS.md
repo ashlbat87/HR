@@ -202,3 +202,33 @@
   remaining design-system refinements logged in docs/REPORTING_DESIGN_SYSTEM.md.
 - **Prototype release:** fictional data, mock auth. No real data before the production gate
   (v0.12): real auth, hosting, data residency, and DPIA required.
+
+## Stage 8 / Release v0.9 (Historical Data Migration) — COMPLETE and ACCEPTED
+
+- **Status:** Complete and accepted. The migration TOOL is built and proven on synthetic data.
+  This does NOT authorise loading real data — the real-data run is gated by v0.10.
+- **Approved by:** Ash (Head of People).
+- **Date:** 07 August 2026.
+- **Design note approved before build:** docs/STAGE8_v0_9_DESIGN.md. Operator guide:
+  docs/MIGRATION_RUNBOOK.md.
+- **Verification:** migration acceptance harness stage8 22/22 (correct imports incl. partial;
+  correct quarantines incl. bad-rating, missing-name, not-in-Hub; recomputed scores 4.3/4.5;
+  performance and values never blended; historic period not current; idempotent re-run).
+  Regressions: stage7a 27/27, stage7c-criterion 12/12, stage7d-accountability 8/8,
+  stage7f-gapdirection 9/9, stage2 6/6, stage5 8/8. Typecheck clean.
+- **Delivered:** a one-off TypeScript CLI migration (scripts/migrate-history.ts) that loads
+  historic reviews from the filled per-employee workbooks; a shared cell-anchors module, a
+  synthetic-workbook generator, a pure extractor/validator, and an acceptance harness. Reuses
+  the app's own calculateQuarterlyScore and ReviewRating shape so migrated data is identical
+  to native data.
+- **Decisions (approved):** PD-030. Key: CLI one-off (not in-app upload); name-match to Hub
+  displayName with quarantine-on-doubt (no auto-create); manager taken from the Hub record;
+  recompute-not-import for all scores; Option B direct-to-COMPLETE with an honest
+  "review.import_historic" audit (no impersonation); whole-file quarantine on any invalid
+  value; historic period find-or-created with isCurrent:false; idempotent.
+- **Carried forward (needed for the real run, not this sign-off):** roster source with work
+  emails and a name-to-email reconciliation for the workbooks; which historic year(s) and how
+  many workbooks.
+- **Prototype release:** SYNTHETIC data only. No real PDPL-scoped data before the v0.10
+  production gate (real auth, approved hosting, data residency, DPIA, named owner, InfoSec
+  sign-off).

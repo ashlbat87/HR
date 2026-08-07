@@ -13,7 +13,7 @@ through to the production gate. No real employee data before the production gate
 | Stage 5 | v0.6 | Review Cycle & Year Management | Next (after quarterly rating definitions) |
 | Stage 6 | v0.7 | HR Dashboard (Performance Operations Cockpit) | Complete, signed off |
 | Stage 7 | v0.8 | Reporting & Insights (incl. Manager Accountability View) | Complete and accepted |
-| Stage 8 | v0.9 | Historical Data Migration (import real review history; built + tested on synthetic data first) | Next |
+| Stage 8 | v0.9 | Historical Data Migration (tool built + proven on synthetic data; real-data run gated by v0.10) | Complete and accepted |
 | Stage 9 | v0.10 | Production Hardening (real auth, hosting, data residency, DPIA) — the production gate | Planned (prototype→production gate) |
 | — | v1.0 | Production-Ready MVP (live, with real historic data) | Planned |
 | — | post-V1 | Moderation & Calibration | Deferred — design against real data after V1 (see PD-029) |

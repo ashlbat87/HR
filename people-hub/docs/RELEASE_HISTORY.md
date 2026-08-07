@@ -14,14 +14,15 @@ narrative lives in docs/PROJECT_JOURNAL.md; approval detail in docs/APPROVALS.md
 | Stage 5 | v0.6 | Review Cycle & Period Management | Complete, approved |
 | Stage 6 | v0.7 | HR Dashboard (Performance Operations Cockpit) | Complete, signed off |
 | Stage 7 | v0.8 | Reporting & Insights (incl. Manager Accountability View) | Complete and accepted |
-| Stage 8 | v0.9 | Moderation & Calibration | Planned |
-| Stage 9 | v0.10 | Strategic Alignment (Objectives & OKRs; read-first) | Approved — not yet scheduled |
-| — | v0.11 | Notifications & Reminders (incl. review deadline locking) | Planned |
-| — | v0.12 | Historical Migration & Production Hardening (real auth, hosting, residency, DPIA; historical review import) | Planned (prototype→production gate) |
-| — | v1.0 | Production-Ready MVP | Planned |
+| Stage 8 | v0.9 | Historical Data Migration (tool built + proven on synthetic data; real-data run gated by v0.10) | Complete and accepted |
+| Stage 9 | v0.10 | Production Hardening (real auth, hosting, data residency, DPIA) — the production gate | Planned (prototype→production gate) |
+| — | v1.0 | Production-Ready MVP (live, with real historic data) | Planned |
+| — | post-V1 | Moderation & Calibration | Deferred — design against real data after V1 (PD-029) |
+| — | post-V1 | Strategic Alignment (Objectives & OKRs) | Approved design — deferred post-V1 |
+| — | post-V1 | Notifications & Reminders (incl. review deadline locking) | Deferred post-V1 |
 
-Prototype era: v0.1-v0.11 (fictional data, mock auth). Production transition: v0.12.
-Production: v1.0. No real employee data before v0.12.
+Prototype era: v0.1-v0.9 (fictional/synthetic data, mock auth). Production transition: v0.10.
+Production: v1.0. No real employee data before the v0.10 production gate (PD-029).
 
 ## Point releases
 - v0.5.1 (Review Experience & Rating Design System): consolidates the review-experience
